@@ -1,0 +1,367 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} – MCET Seminar Hall Booking System</title>
+  <meta name="description" content="College Seminar Hall Booking System - Dr. Mahalingam College of Engineering and Technology (MCET) ERP">
+
+  <!-- Favicon / Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="{% static 'images/mcet_logo.svg' %}" alt="MCET College ERP Logo" style="height:38px; width:auto;">
+        </div>
+        <button type="button" class="sidebar-toggle-btn" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-section-title">Main Portal</span>
+
+        <!-- 1. Dashboard -->
+        <a href="{% url 'core:dashboard' %}" class="nav-item {% if request.resolver_match.app_name == 'core' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </span>
+          <span class="nav-item-text">Dashboard</span>
+        </a>
+
+        <!-- 2. Hall Availability -->
+        <a href="{% url 'bookings:hall_availability' %}" class="nav-item {% if request.resolver_match.url_name == 'hall_availability' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </span>
+          <span class="nav-item-text">Hall Availability</span>
+        </a>
+
+        <!-- 3. New Booking -->
+        {% if user_profile and user_profile.can_create_booking %}
+        <a href="{% url 'bookings:new_booking' %}" class="nav-item {% if request.resolver_match.url_name == 'new_booking' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+          </span>
+          <span class="nav-item-text">New Booking</span>
+        </a>
+        {% endif %}
+
+        <!-- 4. My Bookings -->
+        <a href="{% url 'bookings:my_bookings' %}" class="nav-item {% if request.resolver_match.url_name == 'my_bookings' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </span>
+          <span class="nav-item-text">My Bookings</span>
+        </a>
+
+        <!-- 5. Pending Approvals -->
+        {% if user_profile and user_profile.can_view_approvals %}
+        <a href="{% url 'approvals:pending_list' %}" class="nav-item {% if request.resolver_match.app_name == 'approvals' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+          </span>
+          <span class="nav-item-text">Pending Approvals</span>
+          {% if pending_approvals_count > 0 %}
+          <span class="nav-badge badge-warning">{{ pending_approvals_count }}</span>
+          {% endif %}
+        </a>
+        {% endif %}
+
+        <!-- 6. Approved Bookings -->
+        <a href="{% url 'bookings:approved_bookings' %}" class="nav-item {% if request.resolver_match.url_name == 'approved_bookings' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </span>
+          <span class="nav-item-text">Approved Bookings</span>
+        </a>
+
+        <!-- 7. Calendar View -->
+        <a href="{% url 'bookings:calendar' %}" class="nav-item {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </span>
+          <span class="nav-item-text">Calendar View</span>
+        </a>
+
+        <span class="nav-section-title">Administration</span>
+
+        <!-- 8. Hall Master -->
+        <a href="{% url 'halls:list' %}" class="nav-item {% if request.resolver_match.app_name == 'halls' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </span>
+          <span class="nav-item-text">Hall Master</span>
+        </a>
+
+        <!-- 9. Departments -->
+        <a href="{% url 'departments:list' %}" class="nav-item {% if request.resolver_match.app_name == 'departments' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </span>
+          <span class="nav-item-text">Departments</span>
+        </a>
+
+        <!-- 10. User Management -->
+        {% if user_profile and user_profile.is_admin_user %}
+        <a href="{% url 'accounts:user_management' %}" class="nav-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <line x1="19" y1="8" x2="19" y2="14"></line>
+              <line x1="22" y1="11" x2="16" y2="11"></line>
+            </svg>
+          </span>
+          <span class="nav-item-text">User Management</span>
+        </a>
+        {% endif %}
+
+        <!-- 11. Reports -->
+        <a href="{% url 'reports:dashboard' %}" class="nav-item {% if request.resolver_match.app_name == 'reports' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+          </span>
+          <span class="nav-item-text">Reports</span>
+        </a>
+
+        <!-- 12. Notifications -->
+        <a href="{% url 'notifications:list' %}" class="nav-item {% if request.resolver_match.app_name == 'notifications' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </span>
+          <span class="nav-item-text">Notifications</span>
+          {% if unread_notifications_count > 0 %}
+          <span class="nav-badge">{{ unread_notifications_count }}</span>
+          {% endif %}
+        </a>
+
+        <!-- 13. Audit Logs -->
+        {% if user_profile and user_profile.is_admin_user %}
+        <a href="{% url 'audit:list' %}" class="nav-item {% if request.resolver_match.app_name == 'audit' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+          </span>
+          <span class="nav-item-text">Audit Logs</span>
+        </a>
+        {% endif %}
+
+        <!-- 14. Settings -->
+        {% if user_profile and user_profile.is_admin_user %}
+        <a href="{% url 'core:settings' %}" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+          <span class="nav-item-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </span>
+          <span class="nav-item-text">Settings</span>
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="institutional-tag">
+          <strong>Dr. Mahalingam College of Engg & Tech</strong>
+          <span>Pollachi, Tamil Nadu – 642003</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Container -->
+    <main class="app-main">
+      <!-- Topbar Header -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button type="button" class="mobile-menu-btn" aria-label="Open Navigation">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+
+          <nav class="breadcrumb-nav">
+            <a href="{% url 'core:dashboard' %}">MCET ERP</a>
+            <span class="separator">/</span>
+            <span class="current-page">{% block breadcrumb %}Dashboard{% endblock %}</span>
+          </nav>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Notification Bell Dropdown -->
+          <div class="notification-bell-wrapper">
+            <button type="button" class="bell-btn" title="Notifications" aria-label="Notifications">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {% if unread_notifications_count > 0 %}
+              <span class="bell-badge">{{ unread_notifications_count }}</span>
+              {% endif %}
+            </button>
+
+            <div class="notifications-dropdown">
+              <div class="dropdown-header">
+                <h4>Notifications</h4>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:mark_all_read' %}" style="font-size:12px; font-weight:600;">Mark all read</a>
+                {% endif %}
+              </div>
+              <div class="dropdown-items">
+                {% if recent_notifications %}
+                  {% for notif in recent_notifications %}
+                  <a href="{% url 'notifications:mark_read' notif.id %}" class="dropdown-item {% if not notif.is_read %}unread{% endif %}">
+                    <span class="dropdown-item-title">{{ notif.title }}</span>
+                    <span class="dropdown-item-desc">{{ notif.message|truncatechars:80 }}</span>
+                    <span class="dropdown-item-time">{{ notif.created_at|timesince }} ago</span>
+                  </a>
+                  {% endfor %}
+                {% else %}
+                  <div style="padding:24px; text-align:center; color:#64748B; font-size:13px;">
+                    No new notifications
+                  </div>
+                {% endif %}
+              </div>
+              <div class="dropdown-footer">
+                <a href="{% url 'notifications:list' %}" style="font-size:12.5px; font-weight:600;">View All Notifications</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile Dropdown -->
+          <div class="profile-menu-wrapper">
+            <button type="button" class="profile-trigger-btn" aria-label="User Account Menu">
+              <div class="user-avatar">
+                {{ user.first_name|first|default:user.username|first|upper }}
+              </div>
+              <div class="user-info">
+                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                <span class="user-role-badge">{{ user_profile.get_role_display|default:"User" }}</span>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#64748B;">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+
+            <div class="profile-dropdown-menu">
+              <div style="padding:10px 12px; border-bottom:1px solid #E2E8F0;">
+                <div style="font-weight:600; font-size:13px; color:#123B72;">{{ user.get_full_name|default:user.username }}</div>
+                <div style="font-size:11.5px; color:#64748B; overflow:hidden; text-overflow:ellipsis;">{{ user.email }}</div>
+                {% if user_profile.department %}
+                <div style="font-size:11px; color:#1D5FA7; font-weight:600; margin-top:2px;">{{ user_profile.department.name }}</div>
+                {% endif %}
+              </div>
+              <a href="{% url 'accounts:profile' %}" class="menu-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                My Profile
+              </a>
+              <a href="{% url 'bookings:my_bookings' %}" class="menu-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                </svg>
+                My Booking History
+              </a>
+              <div class="menu-divider"></div>
+              <a href="{% url 'accounts:logout' %}" class="menu-link logout-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Alerts Container -->
+      <div class="page-body">
+        {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+            <span>{{ message }}</span>
+            <button type="button" class="alert-close" aria-label="Close Alert">&times;</button>
+          </div>
+          {% endfor %}
+        {% endif %}
+
+        <!-- Content Block -->
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <!-- Global JavaScript -->
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

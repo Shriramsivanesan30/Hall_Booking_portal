@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking History – {{ hall.name }}{% endblock %}
+{% block breadcrumb %}Hall Master / {{ hall.code }} / History{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Booking History: {{ hall.name }} ({{ hall.code }})</h1>
+    <p>Complete historical log of all past and upcoming event reservations for this hall.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'halls:detail' hall.id %}" class="btn btn-outline">&larr; Back to Hall</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Date</th>
+          <th>Time Slot</th>
+          <th>Event Title</th>
+          <th>Department</th>
+          <th>Requested By</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td style="font-weight:700; color:#123B72; white-space:nowrap;">{{ b.booking_id }}</td>
+          <td style="font-weight:600; white-space:nowrap;">{{ b.event_date|date:"d M Y" }}</td>
+          <td style="color:#1D5FA7; font-weight:500; white-space:nowrap;">
+            {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
+          </td>
+          <td>
+            <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
+              {{ b.event_name }}
+            </a>
+            <div style="font-size:11px; color:#64748B;">{{ b.event_type }} &bull; {{ b.expected_participants }} participants</div>
+          </td>
+          <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
+          <td>{{ b.user.get_full_name|default:b.user.username }}</td>
+          <td><span class="badge {{ b.status_badge_class }}">{{ b.get_status_display }}</span></td>
+          <td>
+            <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">Details</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center; padding:40px; color:#64748B;">
+            No historical bookings on record for this seminar hall.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

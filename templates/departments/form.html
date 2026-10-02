@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Department{% endblock %}
+{% block breadcrumb %}Departments / {{ action }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>{{ action }} Academic Department</h1>
+    <p>Department configuration for student, faculty, and booking management.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'departments:list' %}" class="btn btn-outline">Back to List</a>
+  </div>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Department Details</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="deptCode">Department Code <span class="required">*</span></label>
+          <input type="text" class="form-control" id="deptCode" name="code" required placeholder="e.g. IT, CSE, MECH" value="{{ dept.code|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="deptName">Full Department Name <span class="required">*</span></label>
+          <input type="text" class="form-control" id="deptName" name="name" required placeholder="e.g. Information Technology" value="{{ dept.name|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hodName">Head of Department (HOD)</label>
+          <input type="text" class="form-control" id="hodName" name="hod_name" placeholder="e.g. Dr. K. Ramasamy" value="{{ dept.hod_name|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="contactEmail">Departmental Contact Email</label>
+          <input type="email" class="form-control" id="contactEmail" name="contact_email" placeholder="hod.dept@mcet.in" value="{{ dept.contact_email|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Department Intercom / Phone</label>
+          <input type="text" class="form-control" id="phone" name="phone" placeholder="04259-236030" value="{{ dept.phone|default:'' }}">
+        </div>
+
+        {% if action == 'Edit' %}
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_active" {% if dept.is_active %}checked{% endif %}>
+            <span>Department Active</span>
+          </label>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px; padding-bottom:40px;">
+    <a href="{% url 'departments:list' %}" class="btn btn-outline">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ action }} Department &rarr;</button>
+  </div>
+</form>
+{% endblock %}

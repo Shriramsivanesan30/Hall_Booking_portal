@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Seminar Hall Booking Request{% endblock %}
+{% block breadcrumb %}New Booking Request{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Create Seminar Hall Booking Request</h1>
+    <p>Fill in the event specifications, schedule, and facility requirements for multi-level approval.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'bookings:hall_availability' %}" target="_blank" class="btn btn-outline btn-sm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <line x1="10" y1="14" x2="21" y2="3"></line>
+      </svg>
+      Open Availability Matrix
+    </a>
+  </div>
+</div>
+
+<!-- Availability Feedback Result Box -->
+<div id="availabilityResultBox" style="display:none; margin-bottom: 24px;"></div>
+
+<form method="POST" enctype="multipart/form-data" id="bookingForm">
+  {% csrf_token %}
+  <input type="hidden" name="action_type" id="actionTypeInput" value="SUBMIT">
+
+  <!-- Section 1: Event Details -->
+  <div class="card">
+    <div class="card-header">
+      <h3>1. Event Details & Scheduling</h3>
+      <span style="font-size:12px; color:#64748B;">All fields marked with <span class="required">*</span> are mandatory</span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <!-- Event Name -->
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="eventName">Event Title / Name <span class="required">*</span></label>
+          <input type="text" class="form-control" id="eventName" name="event_name" required placeholder="e.g. National Seminar on Next-Gen Artificial Intelligence" value="{{ form_data.event_name|default:'' }}">
+        </div>
+
+        <!-- Department -->
+        <div class="form-group">
+          <label class="form-label" for="deptSelect">Department <span class="required">*</span></label>
+          <select class="form-control" id="deptSelect" name="department" required>
+            {% for d in departments %}
+            <option value="{{ d.id }}" {% if user_department and user_department.id == d.id %}selected{% endif %}>
+              {{ d.name }} ({{ d.code }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Event Type -->
+        <div class="form-group">
+          <label class="form-label" for="eventType">Event Type <span class="required">*</span></label>
+          <select class="form-control" id="eventType" name="event_type" required>
+            {% for code, label in event_types %}
+            <option value="{{ code }}" {% if form_data.event_type == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Expected Participants -->
+        <div class="form-group">
+          <label class="form-label" for="expectedParticipants">Expected Participants <span class="required">*</span></label>
+          <input type="number" class="form-control" id="expectedParticipants" name="expected_participants" required min="1" max="500" value="{{ form_data.expected_participants|default:50 }}">
+        </div>
+
+        <!-- Event Date -->
+        <div class="form-group">
+          <label class="form-label" for="eventDate">Event Date <span class="required">*</span></label>
+          <input type="date" class="form-control" id="eventDate" name="event_date" required value="{{ form_data.event_date|default:'' }}">
+        </div>
+
+        <!-- Start Time -->
+        <div class="form-group">
+          <label class="form-label" for="startTime">Start Time <span class="required">*</span></label>
+          <input type="time" class="form-control" id="startTime" name="start_time" required value="{{ form_data.start_time|default:'09:30' }}">
+        </div>
+
+        <!-- End Time -->
+        <div class="form-group">
+          <label class="form-label" for="endTime">End Time <span class="required">*</span></label>
+          <input type="time" class="form-control" id="endTime" name="end_time" required value="{{ form_data.end_time|default:'12:30' }}">
+        </div>
+
+        <!-- Calculated Duration Display -->
+        <div class="form-group" style="justify-content:center;">
+          <label class="form-label">Calculated Duration</label>
+          <div id="durationDisplay" style="font-size:15px; font-weight:700; color:#123B72; padding:8px 0;">
+            Calculating...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Hall Selection -->
+  <div class="card">
+    <div class="card-header">
+      <h3>2. Seminar Hall Selection</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <!-- Preferred Hall -->
+        <div class="form-group">
+          <label class="form-label" for="preferredHall">Preferred Seminar Hall <span class="required">*</span></label>
+          <select class="form-control" id="preferredHall" name="preferred_hall" required>
+            <option value="">-- Choose Preferred Hall --</option>
+            {% for h in halls %}
+            <option value="{{ h.id }}" data-capacity="{{ h.capacity }}" {% if form_data.preferred_hall == h.id|stringformat:"s" %}selected{% endif %}>
+              {{ h.name }} ({{ h.code }}) – Cap: {{ h.capacity }} [{{ h.building }}]
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Alternative Hall -->
+        <div class="form-group">
+          <label class="form-label" for="altHall">Alternative Seminar Hall (Optional)</label>
+          <select class="form-control" id="altHall" name="alternative_hall">
+            <option value="">-- None / No preference --</option>
+            {% for h in halls %}
+            <option value="{{ h.id }}" {% if form_data.alternative_hall == h.id|stringformat:"s" %}selected{% endif %}>
+              {{ h.name }} (Cap: {{ h.capacity }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button type="button" class="btn btn-outline" id="checkAvailabilityBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 14 14"></polyline>
+          </svg>
+          Check Availability
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Facilities Checkboxes -->
+  <div class="card">
+    <div class="card-header">
+      <h3>3. Audiovisual & Infrastructure Facilities Required</h3>
+      <span style="font-size:12px; color:#64748B;">Select all services needed for this session</span>
+    </div>
+    <div class="card-body">
+      <div class="checkbox-grid">
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_projector" {% if form_data.req_projector %}checked{% else %}checked{% endif %}>
+          <span>Projector & Screen</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_audio" {% if form_data.req_audio %}checked{% else %}checked{% endif %}>
+          <span>Audio PA System</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_microphone" {% if form_data.req_microphone %}checked{% else %}checked{% endif %}>
+          <span>Cordless / Collar Mics</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_wifi" {% if form_data.req_wifi %}checked{% else %}checked{% endif %}>
+          <span>High-Speed Wi-Fi</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_video_conferencing" {% if form_data.req_video_conferencing %}checked{% endif %}>
+          <span>Video Conferencing</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_ac" {% if form_data.req_ac %}checked{% else %}checked{% endif %}>
+          <span>Air Conditioning</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_stage" {% if form_data.req_stage %}checked{% endif %}>
+          <span>Stage & Dais Setup</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_recording" {% if form_data.req_recording %}checked{% endif %}>
+          <span>HD Video Recording</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Additional Information & File Uploads -->
+  <div class="card">
+    <div class="card-header">
+      <h3>4. Additional Information & Supporting Documents</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="chiefGuest">Chief Guest / Resource Person Details</label>
+          <input type="text" class="form-control" id="chiefGuest" name="chief_guest" placeholder="Name, Designation, Organization (e.g. Dr. A. Kumar, Senior Scientist, ISRO)" value="{{ form_data.chief_guest|default:'' }}">
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="eventDesc">Event Synopsis / Description</label>
+          <textarea class="form-control" id="eventDesc" name="event_description" rows="3" placeholder="Brief outline of event agenda and target student/faculty audience...">{{ form_data.event_description|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="specialReqs">Special Requirements / Seating Layout</label>
+          <textarea class="form-control" id="specialReqs" name="special_requirements" rows="2" placeholder="Any specific requirements regarding electrical power sockets, guest hospitality, banners...">{{ form_data.special_requirements|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="scheduleFile">Upload Programme Schedule (PDF / Image)</label>
+          <input type="file" class="form-control" id="scheduleFile" name="schedule_file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+          <span class="form-help">Brochure or detailed minute-to-minute schedule.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="approvalDoc">Upload Approval Document (PDF / Image)</label>
+          <input type="file" class="form-control" id="approvalDoc" name="approval_doc_file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+          <span class="form-help">Principal / Dean sanctioned approval letter if available.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-top:24px; padding-bottom:40px;">
+    <a href="{% url 'core:dashboard' %}" class="btn btn-outline">Cancel</a>
+
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button type="submit" class="btn btn-outline" id="saveDraftBtn">
+        Save as Draft
+      </button>
+      <button type="submit" class="btn btn-primary" id="submitApprovalBtn">
+        Submit for Approval &rarr;
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/booking_form.js' %}"></script>
+<script>
+  document.getElementById('saveDraftBtn').addEventListener('click', () => {
+    document.getElementById('actionTypeInput').value = 'DRAFT';
+  });
+  document.getElementById('submitApprovalBtn').addEventListener('click', () => {
+    document.getElementById('actionTypeInput').value = 'SUBMIT';
+  });
+</script>
+{% endblock %}

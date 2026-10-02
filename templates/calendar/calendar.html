@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Interactive Seminar Hall Calendar{% endblock %}
+{% block breadcrumb %}Calendar View{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Interactive Seminar Hall Calendar</h1>
+    <p>Outlook-style visual availability planner with Day, Week, Month, and Agenda perspectives.</p>
+  </div>
+  <div class="page-actions">
+    {% if user_profile.can_create_booking %}
+    <a href="{% url 'bookings:new_booking' %}" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      New Booking Request
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="calendar-container" id="mcetCalendarContainer">
+  <!-- Calendar Toolbar -->
+  <div class="calendar-toolbar">
+    <div class="calendar-nav-group">
+      <button type="button" class="btn btn-outline btn-sm" id="calendarTodayBtn">Today</button>
+      <button type="button" class="calendar-nav-btn" id="calendarPrevBtn" title="Previous Range">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button type="button" class="calendar-nav-btn" id="calendarNextBtn" title="Next Range">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      <h2 class="calendar-current-title" id="calendarCurrentTitle">Loading...</h2>
+    </div>
+
+    <!-- View Mode Switcher -->
+    <div class="view-mode-selector">
+      <button type="button" class="view-mode-btn active" data-view="month">Month</button>
+      <button type="button" class="view-mode-btn" data-view="week">Week</button>
+      <button type="button" class="view-mode-btn" data-view="day">Day</button>
+      <button type="button" class="view-mode-btn" data-view="agenda">Agenda</button>
+    </div>
+  </div>
+
+  <!-- Dynamic Filters Bar -->
+  <div class="calendar-filters-bar">
+    <select class="filter-select" id="calendarDeptFilter">
+      <option value="">All Departments</option>
+      {% for d in departments %}
+      <option value="{{ d.id }}">{{ d.name }} ({{ d.code }})</option>
+      {% endfor %}
+    </select>
+
+    <select class="filter-select" id="calendarHallFilter">
+      <option value="">All Seminar Halls</option>
+      {% for h in halls %}
+      <option value="{{ h.id }}">{{ h.name }}</option>
+      {% endfor %}
+    </select>
+
+    <select class="filter-select" id="calendarTypeFilter">
+      <option value="">All Event Types</option>
+      {% for t in event_types %}
+      <option value="{{ t }}">{{ t }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="text" class="filter-search-input" id="calendarSearchInput" placeholder="Filter by event name or speaker...">
+
+    <!-- Status Legend -->
+    <div class="calendar-legend">
+      <div class="legend-item">
+        <span class="legend-dot dot-approved"></span>
+        <span>Confirmed</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot dot-pending"></span>
+        <span>Pending Review</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot dot-maintenance"></span>
+        <span>Maintenance</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar View Body -->
+  <div class="calendar-view-content" id="calendarViewContent">
+    <div style="padding: 60px; text-align:center; color:#64748B;">
+      Initializing calendar planner...
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}

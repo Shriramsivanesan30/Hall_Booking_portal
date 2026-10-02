@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Department Master{% endblock %}
+{% block breadcrumb %}Departments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Academic Departments Directory</h1>
+    <p>Registered academic departments, HOD assignments, and booking statistics.</p>
+  </div>
+  <div class="page-actions">
+    {% if is_admin %}
+    <a href="{% url 'departments:create' %}" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+      Add Department
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Department Name</th>
+          <th>Head of Department</th>
+          <th>Contact Info</th>
+          <th>Faculty Count</th>
+          <th>Total Bookings</th>
+          <th>Status</th>
+          {% if is_admin %}<th>Actions</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in departments %}
+        <tr>
+          <td style="font-weight:700; color:#123B72;">{{ d.code }}</td>
+          <td>
+            <strong style="color:#172B4D; font-size:13.5px;">{{ d.name }}</strong>
+          </td>
+          <td>{{ d.hod_name|default:"–" }}</td>
+          <td style="font-size:12px; color:#64748B;">
+            {% if d.contact_email %}<div>{{ d.contact_email }}</div>{% endif %}
+            {% if d.phone %}<div>{{ d.phone }}</div>{% endif %}
+          </td>
+          <td style="font-weight:600;">{{ d.members_count }} Faculty/Staff</td>
+          <td style="font-weight:600; color:#1D5FA7;">{{ d.bookings_count }} Bookings</td>
+          <td>
+            {% if d.is_active %}
+            <span class="badge badge-success">Active</span>
+            {% else %}
+            <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+          </td>
+          {% if is_admin %}
+          <td>
+            <a href="{% url 'departments:edit' d.id %}" class="btn btn-sm btn-outline">Edit</a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

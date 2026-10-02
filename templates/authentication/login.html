@@ -1,0 +1,197 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Institutional Sign-in – MCET Seminar Hall Booking System</title>
+  <meta name="description" content="Single Sign-on Portal for MCET Seminar Hall Booking System">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #123B72 0%, #1D5FA7 50%, #0E2E59 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 480px;
+      background-color: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .login-header {
+      padding: 32px 32px 24px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      background-color: #FAFCFE;
+    }
+
+    .login-body {
+      padding: 32px;
+    }
+
+    .microsoft-auth-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 13px 20px;
+      background-color: #2F2F2F;
+      color: #FFFFFF;
+      border: 1px solid #1F1F1F;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .microsoft-auth-btn:hover {
+      background-color: #1A1A1A;
+      color: #FFFFFF;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .ms-icon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      width: 18px;
+      height: 18px;
+    }
+    .ms-red { background-color: #F25022; }
+    .ms-green { background-color: #7FBA00; }
+    .ms-blue { background-color: #00A4EF; }
+    .ms-yellow { background-color: #FFB900; }
+
+    .institutional-notice {
+      margin-top: 24px;
+      padding: 14px;
+      background-color: #F8FAFD;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .demo-login-box {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .demo-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">
+      <img src="{% static 'images/mcet_logo.svg' %}" alt="MCET Logo" style="height:54px; width:auto; margin-bottom:12px;">
+      <h2 style="font-size:20px; color:#123B72; font-weight:800; letter-spacing:-0.3px;">MCET College ERP</h2>
+      <p style="font-size:14px; color:#1D5FA7; font-weight:600; margin-top:2px;">Seminar Hall Booking System</p>
+    </div>
+
+    <div class="login-body">
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+          <span>{{ message }}</span>
+          <button type="button" class="alert-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      <p style="text-align:center; color:#64748B; font-size:13.5px; margin-bottom:20px;">
+        Sign in with your official Microsoft 365 / Outlook institutional account to access the booking portal.
+      </p>
+
+      <!-- Primary Microsoft Outlook Button -->
+      <a href="{% url 'accounts:microsoft_login' %}" class="microsoft-auth-btn" id="microsoftLoginBtn">
+        <div class="ms-icon-grid">
+          <div class="ms-red"></div>
+          <div class="ms-green"></div>
+          <div class="ms-blue"></div>
+          <div class="ms-yellow"></div>
+        </div>
+        <span>Continue with Microsoft Outlook</span>
+      </a>
+
+      <!-- Official Institutional Domain Notice -->
+      <div class="institutional-notice">
+        <strong style="color:#123B72; display:block; margin-bottom:4px;">Expected Institutional Accounts:</strong>
+        <ul style="margin-left: 18px; margin-top: 4px;">
+          <li>Student accounts: <code>727624P80@mcet.in</code></li>
+          <li>Faculty & Staff: <code>faculty.name@mcet.in</code></li>
+          <li>HOD, Coordinator & Principal institutional accounts</li>
+        </ul>
+        <p style="margin-top:8px; font-size:11px; color:#94A3B8;">
+          * Passwords are never entered or stored on this server. Authentication is securely verified by Microsoft Entra ID.
+        </p>
+      </div>
+
+      <!-- Local Development Demo Accounts (if enabled) -->
+      {% if enable_demo_login %}
+      <div class="demo-login-box">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-size:11px; font-weight:700; color:#B45309; text-transform:uppercase; letter-spacing:0.5px;">
+            Demo Login Mode (Development Only)
+          </span>
+          <span class="badge badge-warning" style="font-size:10px; padding:2px 6px;">Active</span>
+        </div>
+        <p style="font-size:11.5px; color:#64748B; margin-top:3px;">
+          Select a pre-seeded institutional role for quick evaluation:
+        </p>
+
+        <div class="demo-btn-grid">
+          <a href="{% url 'accounts:demo_login' %}?role=ADMIN" class="btn btn-sm btn-outline" style="font-size:11.5px; text-align:left; justify-content:flex-start;">
+            <span style="color:#123B72; font-weight:700;">Admin</span> (ERP Admin)
+          </a>
+          <a href="{% url 'accounts:demo_login' %}?role=PRINCIPAL" class="btn btn-sm btn-outline" style="font-size:11.5px; text-align:left; justify-content:flex-start;">
+            <span style="color:#123B72; font-weight:700;">Principal</span> (Approver)
+          </a>
+          <a href="{% url 'accounts:demo_login' %}?role=COORDINATOR" class="btn btn-sm btn-outline" style="font-size:11.5px; text-align:left; justify-content:flex-start;">
+            <span style="color:#123B72; font-weight:700;">Coordinator</span> (Halls)
+          </a>
+          <a href="{% url 'accounts:demo_login' %}?role=HOD" class="btn btn-sm btn-outline" style="font-size:11.5px; text-align:left; justify-content:flex-start;">
+            <span style="color:#123B72; font-weight:700;">HOD (IT)</span> (Dept Head)
+          </a>
+          <a href="{% url 'accounts:demo_login' %}?role=FACULTY" class="btn btn-sm btn-outline" style="font-size:11.5px; text-align:left; justify-content:flex-start;">
+            <span style="color:#123B72; font-weight:700;">Faculty</span> (Requester)
+          </a>
+          <a href="{% url 'accounts:demo_login' %}?role=STUDENT" class="btn btn-sm btn-outline" style="font-size:11.5px; text-align:left; justify-content:flex-start;">
+            <span style="color:#123B72; font-weight:700;">Student</span> (Viewer)
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div style="background-color:#FAFCFE; padding:12px; text-align:center; border-top:1px solid #E2E8F0; font-size:11px; color:#64748B;">
+      Dr. Mahalingam College of Engineering and Technology &bull; ERP Systems
+    </div>
+  </div>
+</body>
+</html>

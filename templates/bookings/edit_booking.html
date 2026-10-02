@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Booking {{ booking.booking_id }}{% endblock %}
+{% block breadcrumb %}Edit Booking / {{ booking.booking_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Modify Booking Request ({{ booking.booking_id }})</h1>
+    <p>Update event timing, hall selection, or technical requirements.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'bookings:detail' booking.booking_id %}" class="btn btn-outline">Back to Details</a>
+  </div>
+</div>
+
+<div id="availabilityResultBox" style="display:none; margin-bottom: 24px;"></div>
+
+<form method="POST" id="bookingForm" data-booking-id="{{ booking.id }}">
+  {% csrf_token %}
+  <input type="hidden" name="action_type" id="actionTypeInput" value="SUBMIT">
+
+  <div class="card">
+    <div class="card-header">
+      <h3>1. Event Details & Scheduling</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="eventName">Event Title / Name <span class="required">*</span></label>
+          <input type="text" class="form-control" id="eventName" name="event_name" required value="{{ booking.event_name }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <input type="text" class="form-control" disabled value="{{ booking.department.name }} ({{ booking.department.code }})">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="eventType">Event Type <span class="required">*</span></label>
+          <select class="form-control" id="eventType" name="event_type" required>
+            {% for code, label in event_types %}
+            <option value="{{ code }}" {% if booking.event_type == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="expectedParticipants">Expected Participants <span class="required">*</span></label>
+          <input type="number" class="form-control" id="expectedParticipants" name="expected_participants" required value="{{ booking.expected_participants }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="eventDate">Event Date <span class="required">*</span></label>
+          <input type="date" class="form-control" id="eventDate" name="event_date" required value="{{ booking.event_date|date:'Y-m-d' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="startTime">Start Time <span class="required">*</span></label>
+          <input type="time" class="form-control" id="startTime" name="start_time" required value="{{ booking.start_time|time:'H:i' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="endTime">End Time <span class="required">*</span></label>
+          <input type="time" class="form-control" id="endTime" name="end_time" required value="{{ booking.end_time|time:'H:i' }}">
+        </div>
+
+        <div class="form-group" style="justify-content:center;">
+          <label class="form-label">Calculated Duration</label>
+          <div id="durationDisplay" style="font-size:15px; font-weight:700; color:#123B72; padding:8px 0;">
+            Calculating...
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>2. Seminar Hall Selection</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="preferredHall">Preferred Seminar Hall <span class="required">*</span></label>
+          <select class="form-control" id="preferredHall" name="preferred_hall" required>
+            {% for h in halls %}
+            <option value="{{ h.id }}" {% if booking.preferred_hall.id == h.id %}selected{% endif %}>
+              {{ h.name }} ({{ h.code }}) – Cap: {{ h.capacity }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="altHall">Alternative Seminar Hall (Optional)</label>
+          <select class="form-control" id="altHall" name="alternative_hall">
+            <option value="">-- None / No preference --</option>
+            {% for h in halls %}
+            <option value="{{ h.id }}" {% if booking.alternative_hall and booking.alternative_hall.id == h.id %}selected{% endif %}>
+              {{ h.name }} (Cap: {{ h.capacity }})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top: 14px;">
+        <button type="button" class="btn btn-outline" id="checkAvailabilityBtn">
+          Check Availability
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>3. Facilities Checkboxes</h3>
+    </div>
+    <div class="card-body">
+      <div class="checkbox-grid">
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_projector" {% if booking.req_projector %}checked{% endif %}>
+          <span>Projector & Screen</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_audio" {% if booking.req_audio %}checked{% endif %}>
+          <span>Audio PA System</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_microphone" {% if booking.req_microphone %}checked{% endif %}>
+          <span>Cordless / Collar Mics</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_wifi" {% if booking.req_wifi %}checked{% endif %}>
+          <span>High-Speed Wi-Fi</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_video_conferencing" {% if booking.req_video_conferencing %}checked{% endif %}>
+          <span>Video Conferencing</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_ac" {% if booking.req_ac %}checked{% endif %}>
+          <span>Air Conditioning</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_stage" {% if booking.req_stage %}checked{% endif %}>
+          <span>Stage & Dais Setup</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="req_recording" {% if booking.req_recording %}checked{% endif %}>
+          <span>HD Video Recording</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>4. Additional Information</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="chiefGuest">Chief Guest / Resource Person</label>
+          <input type="text" class="form-control" id="chiefGuest" name="chief_guest" value="{{ booking.chief_guest }}">
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="eventDesc">Event Synopsis</label>
+          <textarea class="form-control" id="eventDesc" name="event_description" rows="3">{{ booking.event_description }}</textarea>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label" for="specialReqs">Special Requirements</label>
+          <textarea class="form-control" id="specialReqs" name="special_requirements" rows="2">{{ booking.special_requirements }}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:24px; padding-bottom:40px;">
+    <a href="{% url 'bookings:detail' booking.booking_id %}" class="btn btn-outline">Cancel</a>
+    <button type="submit" class="btn btn-primary">Save Changes &rarr;</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/booking_form.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User &amp; Role Management{% endblock %}
+{% block breadcrumb %}User Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Institutional Users &amp; Roles</h1>
+    <p>Role assignments, department bindings, and Microsoft account profiles for MCET ERP.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name / Username</th>
+          <th>Email Address</th>
+          <th>Role</th>
+          <th>Department</th>
+          <th>Employee / Roll ID</th>
+          <th>Auth Source</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <div style="font-weight:600; color:#123B72;">{{ u.get_full_name|default:u.username }}</div>
+            <div style="font-size:11.5px; color:#64748B;">@{{ u.username }}</div>
+          </td>
+          <td>{{ u.email }}</td>
+          <td>
+            <span class="badge badge-secondary" style="font-weight:600;">
+              {{ u.profile.get_role_display|default:"Faculty" }}
+            </span>
+          </td>
+          <td>
+            {% if u.profile.department %}
+            <strong>{{ u.profile.department.code }}</strong>
+            <span style="font-size:11px; color:#64748B; display:block;">{{ u.profile.department.name }}</span>
+            {% else %}
+            <span style="color:#94A3B8;">Central / All</span>
+            {% endif %}
+          </td>
+          <td>{{ u.profile.employee_roll_no|default:"–" }}</td>
+          <td>
+            {% if u.profile.auth_provider == 'microsoft' %}
+            <span class="badge" style="background:#F1F5F9; color:#0E2E59; border:1px solid #CBD5E1;">Microsoft 365</span>
+            {% else %}
+            <span class="badge badge-neutral">Local / Seeded</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.profile.is_approved and u.is_active %}
+            <span class="badge badge-success">Active</span>
+            {% else %}
+            <span class="badge badge-danger">Suspended</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'accounts:user_edit' u.id %}" class="btn btn-sm btn-outline">Edit Role</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

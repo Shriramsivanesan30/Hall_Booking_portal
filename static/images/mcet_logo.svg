@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 80" width="420" height="80">
+  <defs>
+    <linearGradient id="mcetNavyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#123B72" />
+      <stop offset="100%" stop-color="#1D5FA7" />
+    </linearGradient>
+    <linearGradient id="mcetGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Emblem Badge -->
+  <g transform="translate(10, 10)">
+    <!-- Hexagon Outer -->
+    <polygon points="30,0 55,15 55,45 30,60 5,45 5,15" fill="url(#mcetNavyGrad)" />
+    <!-- Inner Accent Rim -->
+    <polygon points="30,4 51,16 51,44 30,56 9,44 9,16" fill="#FFFFFF" opacity="0.15" />
+    
+    <!-- Academic Crest / Torch Symbol -->
+    <path d="M30 14 L34 26 L26 26 Z" fill="url(#mcetGoldGrad)" />
+    <path d="M30 10 Q32 6 34 10 Q32 14 30 10 Z" fill="#F59E0B" />
+    <circle cx="30" cy="11" r="2.5" fill="#FFFFFF" />
+    
+    <!-- Open Book Base -->
+    <path d="M20 33 Q25 31 30 33 Q35 31 40 33 L40 43 Q35 41 30 43 Q25 41 20 43 Z" fill="#FFFFFF" />
+    <line x1="30" y1="33" x2="30" y2="43" stroke="#123B72" stroke-width="1.5" />
+    
+    <!-- Gear Teeth subtle -->
+    <circle cx="30" cy="30" r="18" fill="none" stroke="#FFFFFF" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.6"/>
+  </g>
+
+  <!-- Typography -->
+  <!-- Main Title: MCET -->
+  <text x="80" y="32" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="#123B72" letter-spacing="1.5">
+    MCET
+  </text>
+  <text x="150" y="32" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#1D5FA7" letter-spacing="0.5">
+    COLLEGE ERP
+  </text>
+  
+  <!-- Subtitle: Dr. Mahalingam College of Engineering & Technology -->
+  <text x="80" y="49" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="500" fill="#172B4D" letter-spacing="0.2">
+    Dr. Mahalingam College of Engineering and Technology
+  </text>
+  
+  <!-- Module Badge -->
+  <rect x="80" y="55" width="170" height="18" rx="3" fill="#EAF3FF" />
+  <text x="86" y="68" font-family="'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" fill="#1D5FA7" letter-spacing="0.4">
+    SEMINAR HALL BOOKING SYSTEM
+  </text>
+</svg>

@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ hall.name }} Details{% endblock %}
+{% block breadcrumb %}Hall Master / {{ hall.code }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+      <span class="badge {% if hall.is_under_maintenance %}badge-neutral{% elif hall.is_active %}badge-success{% else %}badge-danger{% endif %}">
+        {% if hall.is_under_maintenance %}Under Maintenance{% elif hall.is_active %}Operational{% else %}Disabled{% endif %}
+      </span>
+      <span style="font-size:13px; color:#64748B; font-weight:600;">Code: {{ hall.code }}</span>
+    </div>
+    <h1>{{ hall.name }}</h1>
+    <p>{{ hall.building }}, {{ hall.floor }} &bull; Seating Capacity: {{ hall.capacity }} participants</p>
+  </div>
+
+  <div class="page-actions">
+    {% if can_manage %}
+    <a href="{% url 'halls:edit' hall.id %}" class="btn btn-outline">Edit Hall</a>
+    <button type="button" class="btn btn-outline" onclick="openModal('maintenanceModal')">
+      {% if hall.is_under_maintenance %}Restore Operation{% else %}Mark Under Maintenance{% endif %}
+    </button>
+    {% endif %}
+    <a href="{% url 'halls:history' hall.id %}" class="btn btn-primary">Booking History</a>
+  </div>
+</div>
+
+{% if hall.is_under_maintenance %}
+<div class="alert alert-warning">
+  <div>
+    <strong>This Seminar Hall is currently under maintenance!</strong>
+    <p style="margin-top:2px;">Reason: {{ hall.maintenance_reason|default:"Scheduled routine maintenance" }}</p>
+  </div>
+</div>
+{% endif %}
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:24px; margin-bottom:24px;">
+  <!-- Hall Details Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Infrastructure &amp; Specs</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; font-size:13.5px;">
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Hall Name</span>
+          <p style="font-size:15px; font-weight:700; color:#123B72; margin-top:2px;">{{ hall.name }}</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Code</span>
+          <p style="font-size:15px; font-weight:700; color:#1D5FA7; margin-top:2px;">{{ hall.code }}</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Building</span>
+          <p style="font-size:14px; color:#172B4D; font-weight:600; margin-top:2px;">{{ hall.building }}</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Floor Level</span>
+          <p style="font-size:14px; color:#172B4D; font-weight:600; margin-top:2px;">{{ hall.floor }}</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Maximum Capacity</span>
+          <p style="font-size:15px; font-weight:700; color:#123B72; margin-top:2px;">{{ hall.capacity }} Seats</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Location Landmarks</span>
+          <p style="font-size:13px; color:#172B4D; margin-top:2px;">{{ hall.location|default:"Central Academic Zone" }}</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Responsible In-Charge</span>
+          <p style="font-size:13.5px; color:#172B4D; font-weight:600; margin-top:2px;">{{ hall.responsible_person|default:"Coordinator Office" }}</p>
+        </div>
+        <div>
+          <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase;">Emergency Contact</span>
+          <p style="font-size:13.5px; color:#172B4D; margin-top:2px;">{{ hall.responsible_contact|default:"Ext: 236030" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Facilities Status Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Audiovisual Facilities</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        {% for fac in hall.facilities.all %}
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:8px; border-bottom:1px solid #F1F5F9;">
+          <div>
+            <strong style="font-size:13px; color:#123B72; display:block;">{{ fac.name }}</strong>
+            <span style="font-size:11.5px; color:#64748B;">{{ fac.details|default:"Installed & tested" }}</span>
+          </div>
+          {% if fac.is_available %}
+          <span class="badge badge-success" style="font-size:10.5px;">Available</span>
+          {% else %}
+          <span class="badge badge-danger" style="font-size:10.5px;">Unavailable</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p style="color:#64748B; font-size:13px;">No facilities recorded.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upcoming Bookings for this Hall -->
+<div class="card">
+  <div class="card-header">
+    <h3>Upcoming Confirmed Events for {{ hall.name }}</h3>
+    <a href="{% url 'halls:history' hall.id %}" class="btn btn-sm btn-outline">Full History</a>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Event Title</th>
+          <th>Department</th>
+          <th>Organizer</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in upcoming_bookings %}
+        <tr>
+          <td style="font-weight:600; color:#123B72; white-space:nowrap;">
+            {{ b.event_date|date:"D, d M Y" }}
+          </td>
+          <td style="color:#1D5FA7; font-weight:600; white-space:nowrap;">
+            {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
+          </td>
+          <td>
+            <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
+              {{ b.event_name }}
+            </a>
+            <div style="font-size:11px; color:#64748B;">{{ b.event_type }} ({{ b.expected_participants }} participants)</div>
+          </td>
+          <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
+          <td>{{ b.user.get_full_name|default:b.user.username }}</td>
+          <td>
+            <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">Details</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center; padding:30px; color:#64748B;">
+            No upcoming events booked for this seminar hall.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Maintenance Toggle Modal -->
+{% if can_manage %}
+<div id="maintenanceModal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4>{% if hall.is_under_maintenance %}Restore {{ hall.name }}{% else %}Place {{ hall.name }} Under Maintenance{% endif %}</h4>
+      <button type="button" class="alert-close" onclick="closeModal('maintenanceModal')">&times;</button>
+    </div>
+    <form method="POST" action="{% url 'halls:maintenance_toggle' hall.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="is_under_maintenance" value="{% if hall.is_under_maintenance %}0{% else %}1{% endif %}">
+      <div class="modal-body">
+        {% if hall.is_under_maintenance %}
+        <p style="font-size:13.5px; color:#172B4D;">
+          Are you sure you want to restore <strong>{{ hall.name }}</strong> to operational status? The hall will once again become available for faculty bookings and calendar scheduling.
+        </p>
+        {% else %}
+        <p style="font-size:13.5px; color:#172B4D; margin-bottom:14px;">
+          Marking this hall under maintenance will block new bookings and highlight the maintenance period in grey on the calendar.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="maintReason">Maintenance Reason</label>
+          <input type="text" class="form-control" id="maintReason" name="maintenance_reason" placeholder="e.g. Projector replacement, Annual electrical inspection, Painting...">
+        </div>
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('maintenanceModal')">Cancel</button>
+        <button type="submit" class="btn {% if hall.is_under_maintenance %}btn-success{% else %}btn-danger{% endif %} btn-sm">
+          {% if hall.is_under_maintenance %}Restore to Operation{% else %}Confirm Maintenance Block{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

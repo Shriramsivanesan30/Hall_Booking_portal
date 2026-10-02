@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approved Seminar Hall Bookings{% endblock %}
+{% block breadcrumb %}Approved Bookings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Approved &amp; Confirmed Bookings</h1>
+    <p>Official master schedule of all confirmed seminar hall events across the institution.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'bookings:calendar' %}" class="btn btn-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+      </svg>
+      Calendar View
+    </a>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+  <div class="card-body" style="padding: 14px 20px;">
+    <form method="GET" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <select name="department" class="form-control" style="width: auto; min-width: 160px;">
+        <option value="">All Departments</option>
+        {% for d in departments %}
+        <option value="{{ d.id }}" {% if dept_id == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="hall" class="form-control" style="width: auto; min-width: 160px;">
+        <option value="">All Seminar Halls</option>
+        {% for h in halls %}
+        <option value="{{ h.id }}" {% if hall_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+
+      <input type="date" name="date" class="form-control" style="width: auto;" value="{{ date_filter }}">
+
+      <input type="text" name="search" class="form-control" placeholder="Search event or organizer..." value="{{ search }}" style="flex:1; min-width:180px;">
+
+      <button type="submit" class="btn btn-outline">Filter</button>
+      {% if dept_id or hall_id or date_filter or search %}
+      <a href="{% url 'bookings:approved_bookings' %}" class="btn btn-outline" style="color:#64748B;">Reset</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Event Title</th>
+          <th>Seminar Hall</th>
+          <th>Department</th>
+          <th>Event Date</th>
+          <th>Time Slot</th>
+          <th>Requested By</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if page_obj.object_list %}
+          {% for b in page_obj.object_list %}
+          <tr>
+            <td style="font-weight:700; color:#123B72; white-space:nowrap;">
+              {{ b.booking_id }}
+            </td>
+            <td>
+              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
+                {{ b.event_name }}
+              </a>
+              <div style="font-size:11.5px; color:#64748B;">{{ b.event_type }} &bull; {{ b.expected_participants }} participants</div>
+            </td>
+            <td>
+              <strong>{{ b.get_active_hall.name }}</strong>
+              <div style="font-size:11px; color:#64748B;">{{ b.get_active_hall.building }}</div>
+            </td>
+            <td>
+              <span class="badge badge-neutral">{{ b.department.code }}</span>
+            </td>
+            <td style="white-space:nowrap; font-weight:600; color:#123B72;">
+              {{ b.event_date|date:"D, d M Y" }}
+            </td>
+            <td style="color:#1D5FA7; font-weight:600; white-space:nowrap;">
+              {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
+            </td>
+            <td>{{ b.user.get_full_name|default:b.user.username }}</td>
+            <td>
+              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">Details</a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align:center; padding:40px; color:#64748B;">
+              No approved bookings found matching the criteria.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="pagination-wrapper">
+    <div class="pagination-info">
+      Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} approved bookings
+    </div>
+    <div class="pagination-links">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&department={{ dept_id }}&hall={{ hall_id }}&date={{ date_filter }}&search={{ search }}" class="page-btn">&larr; Prev</a>
+      {% endif %}
+
+      <span class="page-btn active">{{ page_obj.number }}</span>
+
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&department={{ dept_id }}&hall={{ hall_id }}&date={{ date_filter }}&search={{ search }}" class="page-btn">Next &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

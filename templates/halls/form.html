@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Seminar Hall{% endblock %}
+{% block breadcrumb %}Hall Master / {{ action }} Hall{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>{{ action }} Seminar Hall</h1>
+    <p>Configure hall capacity, physical location, and audiovisual equipment.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'halls:list' %}" class="btn btn-outline">Back to Halls</a>
+  </div>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Hall Specifications</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="hallName">Hall Name <span class="required">*</span></label>
+          <input type="text" class="form-control" id="hallName" name="name" required placeholder="e.g. Seminar Hall 5" value="{{ hall.name|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hallCode">Hall Code <span class="required">*</span></label>
+          <input type="text" class="form-control" id="hallCode" name="code" required placeholder="e.g. SH-05" value="{{ hall.code|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hallBuilding">Building Block <span class="required">*</span></label>
+          <input type="text" class="form-control" id="hallBuilding" name="building" required placeholder="e.g. Mechanical Block" value="{{ hall.building|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hallFloor">Floor Level <span class="required">*</span></label>
+          <input type="text" class="form-control" id="hallFloor" name="floor" required placeholder="e.g. 1st Floor" value="{{ hall.floor|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hallCapacity">Seating Capacity <span class="required">*</span></label>
+          <input type="number" class="form-control" id="hallCapacity" name="capacity" required min="10" max="1000" value="{{ hall.capacity|default:100 }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hallLocation">Landmarks / Location</label>
+          <input type="text" class="form-control" id="hallLocation" name="location" placeholder="e.g. Near CAD/CAM Lab" value="{{ hall.location|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="respPerson">Faculty / Staff In-Charge</label>
+          <input type="text" class="form-control" id="respPerson" name="responsible_person" placeholder="Prof. Name" value="{{ hall.responsible_person|default:'' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="respContact">Intercom / Contact Number</label>
+          <input type="text" class="form-control" id="respContact" name="responsible_contact" placeholder="+91 94433..." value="{{ hall.responsible_contact|default:'' }}">
+        </div>
+
+        {% if action == 'Edit' %}
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_active" {% if hall.is_active %}checked{% endif %}>
+            <span>Hall Active &amp; Bookable</span>
+          </label>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h3>Installed Facilities &amp; Equipment</h3>
+      <span style="font-size:12px; color:#64748B;">Check the facilities present in this hall</span>
+    </div>
+    <div class="card-body">
+      <div class="checkbox-grid">
+        {% for fac in facilities_catalog %}
+        <label class="checkbox-label">
+          <input type="checkbox" name="facilities" value="{{ fac }}" {% if fac in current_facilities or action == 'Add' %}checked{% endif %}>
+          <span>{{ fac }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px; padding-bottom:40px;">
+    <a href="{% url 'halls:list' %}" class="btn btn-outline">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ action }} Seminar Hall &rarr;</button>
+  </div>
+</form>
+{% endblock %}

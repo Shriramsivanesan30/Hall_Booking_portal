@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+{% block breadcrumb %}My Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>Institutional Profile</h1>
+    <p>View and manage your account details and contact preferences.</p>
+  </div>
+</div>
+
+<form method="POST">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Personal &amp; Departmental Information</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Institutional Email</label>
+          <input type="email" class="form-control" disabled value="{{ user.email }}">
+          <span class="form-help">Verified by Microsoft Entra ID OAuth.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Designation</label>
+          <input type="text" class="form-control" name="designation" value="{{ profile.designation }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Employee / Roll ID</label>
+          <input type="text" class="form-control" name="employee_roll_no" value="{{ profile.employee_roll_no }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contact Phone / Intercom</label>
+          <input type="text" class="form-control" name="phone" value="{{ profile.phone }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assigned Role</label>
+          <input type="text" class="form-control" disabled value="{{ profile.get_role_display }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <input type="text" class="form-control" disabled value="{{ profile.department.name|default:'Central' }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-bottom:40px;">
+    <button type="submit" class="btn btn-primary">Update Profile</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Settings{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1>System Settings &amp; Workflow Rules</h1>
+    <p>Configure institutional booking parameters, availability rules, and approval workflow controls.</p>
+  </div>
+</div>
+
+<form method="POST" action="{% url 'core:update_settings' %}">
+  {% csrf_token %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Availability &amp; Reservation Rules</h3>
+    </div>
+    <div class="card-body">
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <!-- Rule 1: Pending blocks availability -->
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding-bottom:16px; border-bottom:1px solid #E2E8F0;">
+          <div>
+            <strong style="color:#123B72; font-size:14px; display:block;">Pending Requests Block Hall Availability</strong>
+            <p style="color:#64748B; font-size:12.5px; margin-top:2px;">
+              When enabled, any unapproved request currently in HOD or Coordinator review will temporarily reserve and block conflicting booking submissions. When disabled, only Confirmed/Approved bookings will block slots.
+            </p>
+          </div>
+          <div>
+            <label class="checkbox-label" style="font-weight:600;">
+              <input type="checkbox" name="pending_blocks" {% if pending_blocks %}checked{% endif %}>
+              <span>Enable Blocking</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Rule 2: Weekend bookings -->
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding-bottom:16px; border-bottom:1px solid #E2E8F0;">
+          <div>
+            <strong style="color:#123B72; font-size:14px; display:block;">Allow Weekend Bookings (Saturdays &amp; Sundays)</strong>
+            <p style="color:#64748B; font-size:12.5px; margin-top:2px;">
+              Allow departments and student associations to book seminar halls on non-instructional weekend days.
+            </p>
+          </div>
+          <div>
+            <label class="checkbox-label" style="font-weight:600;">
+              <input type="checkbox" name="allow_weekend" {% if allow_weekend %}checked{% endif %}>
+              <span>Allow Weekends</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Rule 3: Max advance booking window -->
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:20px;">
+          <div>
+            <strong style="color:#123B72; font-size:14px; display:block;">Maximum Advance Booking Window</strong>
+            <p style="color:#64748B; font-size:12.5px; margin-top:2px;">
+              Maximum number of days in advance faculty can reserve a seminar hall.
+            </p>
+          </div>
+          <div style="width: 140px;">
+            <input type="number" name="max_advance_days" class="form-control" value="{{ max_advance_days }}" min="7" max="365">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-bottom:40px;">
+    <button type="submit" class="btn btn-primary">Save System Settings &rarr;</button>
+  </div>
+</form>
+
+<!-- Raw Configs Audit -->
+<div class="card">
+  <div class="card-header">
+    <h3>Registered Configuration Variables</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Configuration Key</th>
+          <th>Current Value</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Last Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cfg in configs %}
+        <tr>
+          <td style="font-weight:700; color:#123B72;">{{ cfg.key }}</td>
+          <td><code>{{ cfg.value }}</code></td>
+          <td><span class="badge badge-secondary">{{ cfg.data_type }}</span></td>
+          <td style="color:#64748B; font-size:12.5px;">{{ cfg.description }}</td>
+          <td style="font-size:12px; color:#64748B;">{{ cfg.updated_at|date:"d M Y, g:i A" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
