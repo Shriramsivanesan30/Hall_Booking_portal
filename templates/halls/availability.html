@@ -1,111 +1,91 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Seminar Hall Availability Matrix{% endblock %}
+{% block title %}Hall Availability{% endblock %}
 {% block breadcrumb %}Hall Availability{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-title-group">
-    <h1>Seminar Hall Availability Matrix</h1>
-    <p>Check instant hall occupancy, reserved time slots, and schedule clearance for any date.</p>
+    <h1>Hall Availability</h1>
+    <p>Check occupancy and schedule clearance for any date.</p>
   </div>
   <div class="page-actions">
     {% if user_profile.can_create_booking %}
-    <a href="{% url 'bookings:new_booking' %}" class="btn btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Book a Hall
-    </a>
+    <a href="{% url 'bookings:new_booking' %}" class="btn btn-primary btn-sm">Book a Hall</a>
     {% endif %}
   </div>
 </div>
 
-<div class="card" style="margin-bottom: 24px;">
-  <div class="card-body" style="padding: 16px 20px;">
-    <form method="GET" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-      <label for="datePicker" style="font-weight:600; color:#123B72; font-size:13.5px;">Select Target Date:</label>
-      <input type="date" id="datePicker" name="date" class="form-control" style="width:auto;" value="{{ selected_date_str }}">
-      <button type="submit" class="btn btn-outline">Check Date</button>
-      <a href="{% url 'bookings:hall_availability' %}" class="btn btn-outline" style="color:#64748B;">Today</a>
+<div class="card" style="margin-bottom: 20px;">
+  <div class="filter-bar">
+    <form method="GET" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <label style="font-weight:600; font-size:13px;">Date:</label>
+      <input type="date" name="date" class="form-control" style="width:auto;" value="{{ selected_date_str }}">
+      <button type="submit" class="btn btn-outline btn-sm">Check</button>
+      <a href="{% url 'bookings:hall_availability' %}" class="btn btn-outline btn-sm" style="color:var(--text-muted);">Today</a>
     </form>
   </div>
 </div>
 
-<div style="font-size:16px; font-weight:700; color:#123B72; margin-bottom:16px;">
-  Hall Schedule for {{ selected_date|date:"l, d F Y" }}
-</div>
+<p style="font-size:14px; font-weight:600; margin-bottom:14px;">
+  {{ selected_date|date:"l, d F Y" }}
+</p>
 
-<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
+<div class="hall-grid">
   {% for item in hall_cards %}
-  <div class="card" style="margin-bottom: 0;">
-    <div class="card-header" style="background:#FAFCFE;">
+  <div class="hall-card">
+    <div class="hall-card-header">
       <div>
-        <h3 style="color:#123B72; font-size:16px;">{{ item.hall.name }}</h3>
-        <span style="font-size:12px; color:#64748B;">{{ item.hall.building }} &bull; {{ item.hall.floor }}</span>
+        <strong style="font-size:14px; color:var(--text-primary);">{{ item.hall.name }}</strong>
+        <span style="font-size:11px; color:var(--text-muted); display:block;">{{ item.hall.building }} · {{ item.hall.floor }}</span>
       </div>
-      <div>
-        {% if item.is_under_maintenance %}
-        <span class="badge badge-neutral" style="background:#F1F5F9; color:#475569;">Under Maintenance</span>
-        {% elif item.is_busy %}
-        <span class="badge badge-warning">{{ item.bookings|length }} Event(s) Booked</span>
-        {% else %}
-        <span class="badge badge-success">Completely Free</span>
-        {% endif %}
-      </div>
+      {% if item.is_under_maintenance %}
+      <span class="badge badge-neutral">Maintenance</span>
+      {% elif item.is_busy %}
+      <span class="badge badge-warning">{{ item.bookings|length }} Booked</span>
+      {% else %}
+      <span class="badge badge-success">Free All Day</span>
+      {% endif %}
     </div>
-    <div class="card-body">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; font-size:13px; color:#64748B;">
-        <span>Seating Capacity: <strong style="color:#123B72;">{{ item.hall.capacity }}</strong></span>
-        <span>Hall Code: <strong style="color:#1D5FA7;">{{ item.hall.code }}</strong></span>
+    <div class="hall-card-body">
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px; color:var(--text-secondary);">
+        <span>Capacity: <strong style="color:var(--text-primary);">{{ item.hall.capacity }}</strong></span>
+        <span>{{ item.hall.code }}</span>
       </div>
 
-      <!-- Facilities Icons / Chips -->
-      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;">
+      <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px;">
         {% for fac in item.hall.available_facilities_list|slice:":5" %}
-        <span style="font-size:11px; background:#EAF3FF; color:#1D5FA7; padding:2px 8px; border-radius:4px; font-weight:500;">
-          {{ fac }}
-        </span>
+        <span class="facility-tag">{{ fac }}</span>
         {% endfor %}
       </div>
 
-      <!-- Bookings on this date -->
-      <div style="border-top:1px solid #E2E8F0; padding-top:12px;">
-        <span style="font-size:11.5px; font-weight:700; color:#64748B; text-transform:uppercase; display:block; margin-bottom:8px;">
-          Time Slots on this Date:
-        </span>
+      <div style="border-top:1px solid var(--border-color); padding-top:10px;">
+        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:6px;">Schedule</span>
         {% if item.bookings %}
-          <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; flex-direction:column; gap:6px;">
             {% for b in item.bookings %}
-            <div style="padding:8px 10px; background:#F8FAFD; border:1px solid #E2E8F0; border-radius:6px; display:flex; align-items:center; justify-content:space-between;">
+            <div style="padding:6px 8px; background:var(--neutral-bg); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:space-between;">
               <div>
-                <strong style="color:#1D5FA7; font-size:12px; display:block;">
-                  {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
-                </strong>
-                <span style="font-size:12px; color:#172B4D; font-weight:500;">{{ b.event_name|truncatechars:26 }}</span>
-                <span style="font-size:11px; color:#64748B;">({{ b.department.code }})</span>
+                <strong style="color:var(--secondary); font-size:11.5px;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</strong>
+                <span style="font-size:11.5px; color:var(--text-primary); display:block;">{{ b.event_name|truncatechars:28 }}</span>
               </div>
-              <span class="badge {{ b.status_badge_class }}" style="font-size:10.5px; padding:2px 6px;">
-                {{ b.get_status_display }}
-              </span>
+              <span class="badge {{ b.status_badge_class }}" style="font-size:10px;">{{ b.get_status_display }}</span>
             </div>
             {% endfor %}
           </div>
         {% else %}
-          <div style="padding:14px; background:#DCFCE7; border:1px solid #BBF7D0; border-radius:6px; text-align:center; color:#15803D; font-size:12.5px; font-weight:600;">
-            No bookings scheduled. Hall is 100% available all day!
+          <div style="padding:10px; background:var(--success-bg); border-radius:var(--radius-sm); text-align:center; color:#15803D; font-size:12px; font-weight:600;">
+            Available all day
           </div>
         {% endif %}
       </div>
-
-      <div style="margin-top:16px; display:flex; align-items:center; justify-content:space-between;">
-        <a href="{% url 'halls:detail' item.hall.id %}" style="font-size:12px; font-weight:600;">View Hall Info &rarr;</a>
-        {% if user_profile.can_create_booking and not item.is_under_maintenance %}
-        <a href="{% url 'bookings:new_booking' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">Book This Hall</a>
-        {% endif %}
-      </div>
+    </div>
+    <div class="hall-card-footer">
+      <a href="{% url 'halls:detail' item.hall.id %}" style="font-size:11.5px; font-weight:600;">Details →</a>
+      {% if user_profile.can_create_booking and not item.is_under_maintenance %}
+      <a href="{% url 'bookings:new_booking' %}" class="btn btn-sm btn-outline">Book</a>
+      {% endif %}
     </div>
   </div>
   {% endfor %}

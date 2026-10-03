@@ -1,91 +1,68 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Notifications Center{% endblock %}
+{% block title %}Notifications{% endblock %}
 {% block breadcrumb %}Notifications{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-title-group">
-    <h1>Institutional Notification Center</h1>
-    <p>System alerts, approval progress updates, and schedule notifications.</p>
+    <h1>Notifications</h1>
+    <p>Approval updates, schedule alerts, and system notifications.</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'notifications:mark_all_read' %}" class="btn btn-outline">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <a href="{% url 'notifications:mark_all_read' %}" class="btn btn-outline btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
-      Mark All as Read
+      Mark All Read
     </a>
   </div>
 </div>
 
-<div class="card" style="margin-bottom: 20px;">
-  <div class="card-body" style="padding: 12px 20px;">
-    <div style="display:flex; align-items:center; gap:10px;">
-      <a href="{% url 'notifications:list' %}" class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline{% endif %}">
-        All Notifications
-      </a>
-      <a href="{% url 'notifications:list' %}?filter=unread" class="btn btn-sm {% if filter_type == 'unread' %}btn-primary{% else %}btn-outline{% endif %}">
-        Unread Only
-      </a>
-    </div>
+<div class="card" style="margin-bottom:16px;">
+  <div style="padding:10px 18px; display:flex; align-items:center; gap:8px;">
+    <a href="{% url 'notifications:list' %}" class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+    <a href="{% url 'notifications:list' %}?filter=unread" class="btn btn-sm {% if filter_type == 'unread' %}btn-primary{% else %}btn-outline{% endif %}">Unread Only</a>
   </div>
 </div>
 
 <div class="card">
-  <div style="display:flex; flex-direction:column;">
-    {% if page_obj.object_list %}
-      {% for notif in page_obj.object_list %}
-      <div style="padding: 18px 24px; border-bottom: 1px solid #E2E8F0; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; background-color:{% if not notif.is_read %}#F8FAFD{% else %}#FFFFFF{% endif %}; border-left:{% if not notif.is_read %}4px solid #3B82F6{% else %}4px solid transparent{% endif %};">
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <strong style="font-size:14px; color:#123B72;">{{ notif.title }}</strong>
-            {% if not notif.is_read %}
-            <span class="badge badge-warning" style="font-size:10px; padding:2px 6px;">New</span>
-            {% endif %}
-          </div>
-          <p style="font-size:13px; color:#172B4D; line-height:1.5;">{{ notif.message }}</p>
-          <span style="font-size:11.5px; color:#94A3B8;">{{ notif.created_at|date:"d M Y, g:i A" }} ({{ notif.created_at|timesince }} ago)</span>
+  {% if page_obj.object_list %}
+    {% for notif in page_obj.object_list %}
+    <div style="padding:14px 18px; border-bottom:1px solid var(--border-light); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; {% if not notif.is_read %}background-color:#F8FAFD; border-left:3px solid var(--accent);{% endif %}">
+      <div style="flex:1;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:2px;">
+          <strong style="font-size:13px; color:var(--text-primary);">{{ notif.title }}</strong>
+          {% if not notif.is_read %}<span class="badge badge-warning" style="font-size:9px; padding:1px 5px;">New</span>{% endif %}
         </div>
-
-        <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-          {% if notif.booking %}
-          <a href="{% url 'bookings:detail' notif.booking.booking_id %}" class="btn btn-sm btn-outline">
-            View Booking &rarr;
-          </a>
-          {% endif %}
-          {% if not notif.is_read %}
-          <a href="{% url 'notifications:mark_read' notif.id %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">
-            Dismiss
-          </a>
-          {% endif %}
-        </div>
+        <p style="font-size:12.5px; color:var(--text-primary); line-height:1.5;">{{ notif.message }}</p>
+        <span style="font-size:11px; color:var(--text-muted);">{{ notif.created_at|date:"d M Y, g:i A" }} · {{ notif.created_at|timesince }} ago</span>
       </div>
-      {% endfor %}
-    {% else %}
-      <div style="padding: 60px; text-align:center; color:#64748B;">
-        <p style="font-size:15px; font-weight:600; color:#123B72;">No notifications found</p>
-        <span style="font-size:12.5px;">You have read all recent alerts and notifications.</span>
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        {% if notif.booking %}
+        <a href="{% url 'bookings:detail' notif.booking.booking_id %}" class="btn btn-sm btn-outline">View →</a>
+        {% endif %}
+        {% if not notif.is_read %}
+        <a href="{% url 'notifications:mark_read' notif.id %}" class="btn btn-sm btn-outline" style="font-size:11px;">Dismiss</a>
+        {% endif %}
       </div>
-    {% endif %}
-  </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-title">No notifications</div>
+      <div class="empty-state-desc">You're all caught up.</div>
+    </div>
+  {% endif %}
 
   {% if page_obj.has_other_pages %}
   <div class="pagination-wrapper">
-    <div class="pagination-info">
-      Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} notifications
-    </div>
+    <div class="pagination-info">{{ page_obj.start_index }} – {{ page_obj.end_index }} of {{ page_obj.paginator.count }}</div>
     <div class="pagination-links">
-      {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}" class="page-btn">&larr; Prev</a>
-      {% endif %}
-
+      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}" class="page-btn">← Prev</a>{% endif %}
       <span class="page-btn active">{{ page_obj.number }}</span>
-
-      {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}" class="page-btn">Next &rarr;</a>
-      {% endif %}
+      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}" class="page-btn">Next →</a>{% endif %}
     </div>
   </div>
   {% endif %}

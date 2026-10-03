@@ -1,184 +1,129 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}ERP Dashboard{% endblock %}
-{% block breadcrumb %}Institutional Dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
 
 {% block content %}
+<!-- Greeting + Quick Actions -->
 <div class="page-header">
   <div class="page-title-group">
-    <h1>Seminar Hall Booking Dashboard</h1>
-    <p>Real-time booking metrics, hall occupancy, and schedules for {{ today_date|date:"l, d F Y" }}</p>
+    <h1>{% now "H" as current_hour %}{% if current_hour|add:"0" < 12 %}Good Morning{% elif current_hour|add:"0" < 17 %}Good Afternoon{% else %}Good Evening{% endif %}, {{ user.first_name|default:user.username }}</h1>
+    <p>Seminar Hall Booking Overview for {{ today_date|date:"l, d F Y" }}</p>
   </div>
   <div class="page-actions">
     {% if user_profile and user_profile.can_create_booking %}
     <a href="{% url 'bookings:new_booking' %}" class="btn btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"></line>
         <line x1="5" y1="12" x2="19" y2="12"></line>
       </svg>
-      New Booking Request
+      New Booking
     </a>
     {% endif %}
-    <a href="{% url 'bookings:hall_availability' %}" class="btn btn-outline">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-      </svg>
-      Check Availability
-    </a>
-    <a href="{% url 'bookings:calendar' %}" class="btn btn-outline">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-        <line x1="16" y1="2" x2="16" y2="6"></line>
-        <line x1="8" y1="2" x2="8" y2="6"></line>
-        <line x1="3" y1="10" x2="21" y2="10"></line>
-      </svg>
-      Calendar
-    </a>
+    <a href="{% url 'bookings:hall_availability' %}" class="btn btn-outline">Check Availability</a>
+    <a href="{% url 'bookings:calendar' %}" class="btn btn-outline">Calendar</a>
   </div>
 </div>
 
-<!-- Section 5: Stats Counter Grid -->
+<!-- KPI Stats (max 4 primary cards) -->
 <div class="stats-grid">
-  <!-- Total Halls -->
+  {% if user_profile and user_profile.is_admin_user or user_profile and user_profile.is_coordinator %}
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Total Seminar Halls</span>
+      <span class="stat-label">Total Halls</span>
       <span class="stat-value">{{ total_halls }}</span>
     </div>
     <div class="stat-icon icon-blue">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
       </svg>
     </div>
   </div>
+  {% endif %}
 
-  <!-- Available Halls Today -->
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Available Halls Today</span>
+      <span class="stat-label">Available Today</span>
       <span class="stat-value">{{ available_halls_today }}</span>
     </div>
     <div class="stat-icon icon-green">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
     </div>
   </div>
 
-  <!-- Today's Bookings -->
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Today's Confirmed Bookings</span>
+      <span class="stat-label">Today's Bookings</span>
       <span class="stat-value">{{ todays_bookings_count }}</span>
     </div>
     <div class="stat-icon icon-blue">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 14 14"></polyline>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
       </svg>
     </div>
   </div>
 
-  <!-- Pending Requests -->
   <div class="stat-card">
     <div class="stat-info">
       <span class="stat-label">Pending Requests</span>
       <span class="stat-value">{{ pending_requests_count }}</span>
     </div>
     <div class="stat-icon icon-orange">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"></circle>
-        <line x1="12" y1="8" x2="12" y2="12"></line>
-        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-      </svg>
-    </div>
-  </div>
-
-  <!-- Approved Total -->
-  <div class="stat-card">
-    <div class="stat-info">
-      <span class="stat-label">Approved Events</span>
-      <span class="stat-value">{{ approved_bookings_count }}</span>
-    </div>
-    <div class="stat-icon icon-green">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-      </svg>
-    </div>
-  </div>
-
-  <!-- Rejected Total -->
-  <div class="stat-card">
-    <div class="stat-info">
-      <span class="stat-label">Rejected Requests</span>
-      <span class="stat-value">{{ rejected_requests_count }}</span>
-    </div>
-    <div class="stat-icon icon-red">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"></circle>
-        <line x1="15" y1="9" x2="9" y2="15"></line>
-        <line x1="9" y1="9" x2="15" y2="15"></line>
-      </svg>
-    </div>
-  </div>
-
-  <!-- Cancelled Total -->
-  <div class="stat-card">
-    <div class="stat-info">
-      <span class="stat-label">Cancelled Bookings</span>
-      <span class="stat-value">{{ cancelled_bookings_count }}</span>
-    </div>
-    <div class="stat-icon icon-neutral">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
+        <polyline points="12 6 12 12 14 14"></polyline>
       </svg>
     </div>
   </div>
 </div>
 
-<!-- Live Seminar Hall Occupancy Matrix -->
-<div class="card" style="margin-bottom: 24px;">
+<!-- Hall Status Overview -->
+<div class="card">
   <div class="card-header">
-    <h3>Live Seminar Hall Status Overview</h3>
-    <a href="{% url 'bookings:hall_availability' %}" class="btn btn-sm btn-outline">Check All Dates</a>
+    <h3>Hall Status</h3>
+    <a href="{% url 'bookings:hall_availability' %}" class="btn btn-sm btn-outline">All Dates</a>
   </div>
   <div class="card-body">
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+    <div class="hall-grid">
       {% for item in hall_status_list %}
-      <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:14px; display:flex; flex-direction:column; justify-content:space-between;">
-        <div>
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <strong style="color:#123B72; font-size:14px;">{{ item.hall.name }}</strong>
-            <span style="font-size:11px; color:#64748B;">{{ item.hall.code }}</span>
+      <div class="hall-card">
+        <div class="hall-card-header">
+          <div>
+            <strong style="color:var(--text-primary); font-size:13.5px;">{{ item.hall.name }}</strong>
+            <span style="font-size:11px; color:var(--text-muted); display:block;">{{ item.hall.building }} · Cap: {{ item.hall.capacity }}</span>
           </div>
-          <div style="font-size:12px; color:#64748B; margin-bottom:10px;">
-            Cap: <strong>{{ item.hall.capacity }}</strong> | {{ item.hall.building }}
-          </div>
-
           {% if item.is_maintenance %}
-            <span class="badge badge-neutral" style="background:#F1F5F9; color:#475569;">Under Maintenance</span>
-            <p style="font-size:11px; color:#DC2626; margin-top:4px;">{{ item.hall.maintenance_reason|default:"Routine maintenance" }}</p>
+            <span class="badge badge-neutral">Maintenance</span>
           {% elif item.is_busy %}
-            <span class="badge badge-warning" style="background:#FEF3C7; color:#B45309;">Occupied Now</span>
-            <p style="font-size:11.5px; color:#172B4D; font-weight:600; margin-top:4px;">{{ item.current_event.event_name|truncatechars:28 }}</p>
-            <span style="font-size:11px; color:#64748B;">Until {{ item.current_event.end_time|time:"g:i A" }}</span>
+            <span class="badge badge-warning">Occupied</span>
           {% else %}
-            <span class="badge badge-success" style="background:#DCFCE7; color:#15803D;">Available Now</span>
+            <span class="badge badge-success">Available</span>
+          {% endif %}
+        </div>
+        <div class="hall-card-body" style="font-size:12px; color:var(--text-secondary);">
+          {% if item.is_maintenance %}
+            {{ item.hall.maintenance_reason|default:"Routine maintenance" }}
+          {% elif item.is_busy %}
+            <strong style="color:var(--text-primary);">{{ item.current_event.event_name|truncatechars:30 }}</strong>
+            <div style="margin-top:2px;">Until {{ item.current_event.end_time|time:"g:i A" }}</div>
+          {% else %}
             {% if item.upcoming_today %}
-            <p style="font-size:11px; color:#64748B; margin-top:4px;">
-              Next: {{ item.upcoming_today.start_time|time:"g:i A" }} ({{ item.upcoming_today.event_name|truncatechars:20 }})
-            </p>
+              Next: {{ item.upcoming_today.start_time|time:"g:i A" }} – {{ item.upcoming_today.event_name|truncatechars:24 }}
             {% else %}
-            <p style="font-size:11px; color:#64748B; margin-top:4px;">No further events booked today</p>
+              No events scheduled today
             {% endif %}
           {% endif %}
         </div>
-        <div style="margin-top:12px; text-align:right;">
-          <a href="{% url 'halls:detail' item.hall.id %}" style="font-size:11.5px; font-weight:600;">View Hall Details &rarr;</a>
+        <div class="hall-card-footer">
+          <a href="{% url 'halls:detail' item.hall.id %}" style="font-size:11.5px; font-weight:600;">Details →</a>
         </div>
       </div>
       {% endfor %}
@@ -186,11 +131,11 @@
   </div>
 </div>
 
-<!-- Section 5: Today's Schedule Table -->
+<!-- Today's Schedule -->
 <div class="card">
   <div class="card-header">
-    <h3>Today's Schedule ({{ today_date|date:"d M Y" }})</h3>
-    <span class="badge badge-secondary">{{ todays_schedule|length }} Events Scheduled</span>
+    <h3>Today's Schedule</h3>
+    <span class="badge badge-secondary">{{ todays_schedule|length }} Events</span>
   </div>
   <div class="table-responsive">
     <table class="data-table">
@@ -198,52 +143,53 @@
         <tr>
           <th>Time</th>
           <th>Hall</th>
-          <th>Event Name</th>
+          <th>Event</th>
           <th>Department</th>
           <th>Requested By</th>
           <th>Status</th>
-          <th>Action</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% if todays_schedule %}
           {% for b in todays_schedule %}
           <tr>
-            <td style="font-weight:600; color:#1D5FA7; white-space:nowrap;">
+            <td style="font-weight:600; color:var(--secondary); white-space:nowrap;">
               {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
             </td>
             <td>
               <strong>{{ b.get_active_hall.name }}</strong>
-              <div style="font-size:11px; color:#64748B;">{{ b.get_active_hall.building }}</div>
+              <div style="font-size:11px; color:var(--text-muted);">{{ b.get_active_hall.building }}</div>
             </td>
             <td>
-              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
+              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:var(--text-primary);">
                 {{ b.event_name }}
               </a>
-              <div style="font-size:11.5px; color:#64748B;">{{ b.event_type }} ({{ b.expected_participants }} participants)</div>
+              <div style="font-size:11px; color:var(--text-muted);">{{ b.event_type }}</div>
             </td>
+            <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
+            <td style="font-size:12.5px;">{{ b.user.get_full_name|default:b.user.username }}</td>
+            <td><span class="badge {{ b.status_badge_class }}">{{ b.get_status_display }}</span></td>
             <td>
-              <span class="badge badge-neutral">{{ b.department.code }}</span>
-            </td>
-            <td>
-              {{ b.user.get_full_name|default:b.user.username }}
-            </td>
-            <td>
-              <span class="badge {{ b.status_badge_class }}">
-                {{ b.get_status_display }}
-              </span>
-            </td>
-            <td>
-              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">
-                Details
-              </a>
+              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">View</a>
             </td>
           </tr>
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="7" style="text-align:center; padding:36px; color:#64748B;">
-              No seminar halls are scheduled for events today.
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+                <div class="empty-state-title">No events today</div>
+                <div class="empty-state-desc">No seminar halls are scheduled for events today.</div>
+              </div>
             </td>
           </tr>
         {% endif %}
@@ -252,11 +198,11 @@
   </div>
 </div>
 
-<!-- Upcoming Events List -->
+<!-- Upcoming Events -->
 <div class="card">
   <div class="card-header">
     <h3>Upcoming Confirmed Events</h3>
-    <a href="{% url 'bookings:approved_bookings' %}" class="btn btn-sm btn-outline">View All Approved</a>
+    <a href="{% url 'bookings:approved_bookings' %}" class="btn btn-sm btn-outline">View All</a>
   </div>
   <div class="table-responsive">
     <table class="data-table">
@@ -264,34 +210,30 @@
         <tr>
           <th>Date</th>
           <th>Time</th>
-          <th>Seminar Hall</th>
-          <th>Event Name</th>
+          <th>Hall</th>
+          <th>Event</th>
           <th>Department</th>
           <th>Organizer</th>
-          <th>Action</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% if upcoming_events %}
           {% for b in upcoming_events %}
           <tr>
-            <td style="font-weight:600; color:#123B72; white-space:nowrap;">
-              {{ b.event_date|date:"D, d M Y" }}
-            </td>
-            <td style="color:#1D5FA7; font-weight:500; white-space:nowrap;">
+            <td style="font-weight:600; white-space:nowrap;">{{ b.event_date|date:"D, d M" }}</td>
+            <td style="color:var(--secondary); font-weight:500; white-space:nowrap;">
               {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
             </td>
+            <td><strong>{{ b.get_active_hall.name }}</strong></td>
             <td>
-              <strong>{{ b.get_active_hall.code }}</strong> - {{ b.get_active_hall.name }}
-            </td>
-            <td>
-              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
+              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:var(--text-primary);">
                 {{ b.event_name }}
               </a>
-              <div style="font-size:11.5px; color:#64748B;">{{ b.event_type }}</div>
+              <div style="font-size:11px; color:var(--text-muted);">{{ b.event_type }}</div>
             </td>
             <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
-            <td>{{ b.user.get_full_name|default:b.user.username }}</td>
+            <td style="font-size:12.5px;">{{ b.user.get_full_name|default:b.user.username }}</td>
             <td>
               <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">View</a>
             </td>
@@ -299,8 +241,11 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="7" style="text-align:center; padding:36px; color:#64748B;">
-              No upcoming approved events found.
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state-title">No upcoming events</div>
+                <div class="empty-state-desc">No approved events are currently scheduled.</div>
+              </div>
             </td>
           </tr>
         {% endif %}

@@ -17,6 +17,7 @@
   <div class="card">
     <div class="card-header">
       <h3>Personal &amp; Departmental Information</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Synchronized with MCET Directory</span>
     </div>
     <div class="card-body">
       <div class="form-grid">
@@ -33,22 +34,22 @@
         <div class="form-group">
           <label class="form-label">Institutional Email</label>
           <input type="email" class="form-control" disabled value="{{ user.email }}">
-          <span class="form-help">Verified by Microsoft Entra ID OAuth.</span>
+          <span class="form-help">Managed by Microsoft 365 OAuth.</span>
         </div>
 
         <div class="form-group">
           <label class="form-label">Designation</label>
-          <input type="text" class="form-control" name="designation" value="{{ profile.designation }}">
+          <input type="text" class="form-control" name="designation" value="{{ profile.designation|default:'' }}">
         </div>
 
         <div class="form-group">
           <label class="form-label">Employee / Roll ID</label>
-          <input type="text" class="form-control" name="employee_roll_no" value="{{ profile.employee_roll_no }}">
+          <input type="text" class="form-control" name="employee_roll_no" value="{{ profile.employee_roll_no|default:'' }}">
         </div>
 
         <div class="form-group">
           <label class="form-label">Contact Phone / Intercom</label>
-          <input type="text" class="form-control" name="phone" value="{{ profile.phone }}">
+          <input type="text" class="form-control" name="phone" value="{{ profile.phone|default:'' }}">
         </div>
 
         <div class="form-group">
@@ -58,14 +59,19 @@
 
         <div class="form-group">
           <label class="form-label">Department</label>
-          <input type="text" class="form-control" disabled value="{{ profile.department.name|default:'Central' }}">
+          <input type="text" class="form-control" disabled value="{{ profile.department.name|default:'Central / Institution-Wide' }}">
         </div>
       </div>
     </div>
   </div>
 
   <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-bottom:40px;">
-    <button type="submit" class="btn btn-primary">Update Profile</button>
+    <button type="submit" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      Update Profile
+    </button>
   </div>
 </form>
 {% endblock %}

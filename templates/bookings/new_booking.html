@@ -1,256 +1,751 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}New Seminar Hall Booking Request{% endblock %}
+{% block title %}New Booking Request – MCET College ERP{% endblock %}
 {% block breadcrumb %}New Booking Request{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div class="page-title-group">
-    <h1>Create Seminar Hall Booking Request</h1>
-    <p>Fill in the event specifications, schedule, and facility requirements for multi-level approval.</p>
-  </div>
-  <div class="page-actions">
-    <a href="{% url 'bookings:hall_availability' %}" target="_blank" class="btn btn-outline btn-sm">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-        <polyline points="15 3 21 3 21 9"></polyline>
-        <line x1="10" y1="14" x2="21" y2="3"></line>
-      </svg>
-      Open Availability Matrix
-    </a>
-  </div>
-</div>
+<div class="wizard-container" id="bookingWizardApp">
 
-<!-- Availability Feedback Result Box -->
-<div id="availabilityResultBox" style="display:none; margin-bottom: 24px;"></div>
-
-<form method="POST" enctype="multipart/form-data" id="bookingForm">
-  {% csrf_token %}
-  <input type="hidden" name="action_type" id="actionTypeInput" value="SUBMIT">
-
-  <!-- Section 1: Event Details -->
-  <div class="card">
-    <div class="card-header">
-      <h3>1. Event Details & Scheduling</h3>
-      <span style="font-size:12px; color:#64748B;">All fields marked with <span class="required">*</span> are mandatory</span>
+  <!-- 5-Step Progress Stepper -->
+  <div class="wizard-stepper">
+    <div class="wizard-step-node completed" data-step="1" id="stepNode1">
+      <span class="wizard-step-num">1</span>
+      <span>Event Details</span>
     </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <!-- Event Name -->
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="eventName">Event Title / Name <span class="required">*</span></label>
-          <input type="text" class="form-control" id="eventName" name="event_name" required placeholder="e.g. National Seminar on Next-Gen Artificial Intelligence" value="{{ form_data.event_name|default:'' }}">
-        </div>
+    <div class="wizard-step-node active" data-step="2" id="stepNode2">
+      <span class="wizard-step-num">2</span>
+      <span>Select Hall &amp; Time Slot</span>
+    </div>
+    <div class="wizard-step-node" data-step="3" id="stepNode3">
+      <span class="wizard-step-num">3</span>
+      <span>Facilities</span>
+    </div>
+    <div class="wizard-step-node" data-step="4" id="stepNode4">
+      <span class="wizard-step-num">4</span>
+      <span>Additional Information</span>
+    </div>
+    <div class="wizard-step-node" data-step="5" id="stepNode5">
+      <span class="wizard-step-num">5</span>
+      <span>Review &amp; Submit</span>
+    </div>
+  </div>
 
-        <!-- Department -->
-        <div class="form-group">
-          <label class="form-label" for="deptSelect">Department <span class="required">*</span></label>
-          <select class="form-control" id="deptSelect" name="department" required>
-            {% for d in departments %}
-            <option value="{{ d.id }}" {% if user_department and user_department.id == d.id %}selected{% endif %}>
-              {{ d.name }} ({{ d.code }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
+  <form method="POST" enctype="multipart/form-data" id="bookingMasterForm">
+    {% csrf_token %}
+    <input type="hidden" name="action_type" id="actionTypeInput" value="SUBMIT">
+    <!-- Hidden sync inputs for form submission -->
+    <input type="hidden" name="preferred_hall" id="preferredHallInput" value="{% if halls %}{{ halls.0.id }}{% endif %}">
+    <input type="hidden" name="alternative_hall" id="altHallInput" value="">
+    <input type="hidden" name="event_date" id="eventDateInput" value="{{ form_data.event_date|default:'2026-10-15' }}">
+    <input type="hidden" name="start_time" id="startTimeInput" value="{{ form_data.start_time|default:'14:00' }}">
+    <input type="hidden" name="end_time" id="endTimeInput" value="{{ form_data.end_time|default:'16:00' }}">
 
-        <!-- Event Type -->
-        <div class="form-group">
-          <label class="form-label" for="eventType">Event Type <span class="required">*</span></label>
-          <select class="form-control" id="eventType" name="event_type" required>
-            {% for code, label in event_types %}
-            <option value="{{ code }}" {% if form_data.event_type == code %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
+    <!-- ==========================================
+         STEP 1: EVENT DETAILS
+         ========================================== -->
+    <div class="wizard-step-pane" id="stepPane1" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3>1. Event Details &amp; Department Affiliation</h3>
+          <span style="font-size:11px; color:var(--text-muted);">Required event parameters</span>
         </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label" for="eventName">Event Title <span class="required">*</span></label>
+              <input type="text" class="form-control" id="eventName" name="event_name" required placeholder="e.g. National Conference on Artificial Intelligence &amp; Cloud Computing" value="{{ form_data.event_name|default:'Annual Technology & Innovation Seminar 2026' }}">
+            </div>
 
-        <!-- Expected Participants -->
-        <div class="form-group">
-          <label class="form-label" for="expectedParticipants">Expected Participants <span class="required">*</span></label>
-          <input type="number" class="form-control" id="expectedParticipants" name="expected_participants" required min="1" max="500" value="{{ form_data.expected_participants|default:50 }}">
-        </div>
+            <div class="form-group">
+              <label class="form-label" for="deptSelect">Academic Department <span class="required">*</span></label>
+              <select class="form-control" id="deptSelect" name="department" required>
+                {% for d in departments %}
+                <option value="{{ d.id }}" {% if user_department and user_department.id == d.id %}selected{% endif %}>
+                  {{ d.name }} ({{ d.code }})
+                </option>
+                {% endfor %}
+              </select>
+            </div>
 
-        <!-- Event Date -->
-        <div class="form-group">
-          <label class="form-label" for="eventDate">Event Date <span class="required">*</span></label>
-          <input type="date" class="form-control" id="eventDate" name="event_date" required value="{{ form_data.event_date|default:'' }}">
-        </div>
+            <div class="form-group">
+              <label class="form-label" for="eventType">Event Type <span class="required">*</span></label>
+              <select class="form-control" id="eventType" name="event_type" required>
+                {% for code, label in event_types %}
+                <option value="{{ code }}" {% if form_data.event_type == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
 
-        <!-- Start Time -->
-        <div class="form-group">
-          <label class="form-label" for="startTime">Start Time <span class="required">*</span></label>
-          <input type="time" class="form-control" id="startTime" name="start_time" required value="{{ form_data.start_time|default:'09:30' }}">
-        </div>
-
-        <!-- End Time -->
-        <div class="form-group">
-          <label class="form-label" for="endTime">End Time <span class="required">*</span></label>
-          <input type="time" class="form-control" id="endTime" name="end_time" required value="{{ form_data.end_time|default:'12:30' }}">
-        </div>
-
-        <!-- Calculated Duration Display -->
-        <div class="form-group" style="justify-content:center;">
-          <label class="form-label">Calculated Duration</label>
-          <div id="durationDisplay" style="font-size:15px; font-weight:700; color:#123B72; padding:8px 0;">
-            Calculating...
+            <div class="form-group">
+              <label class="form-label" for="expectedParticipants">Expected Participants <span class="required">*</span></label>
+              <input type="number" class="form-control" id="expectedParticipants" name="expected_participants" required min="10" max="1000" value="{{ form_data.expected_participants|default:200 }}">
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Section 2: Hall Selection -->
-  <div class="card">
-    <div class="card-header">
-      <h3>2. Seminar Hall Selection</h3>
-    </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <!-- Preferred Hall -->
-        <div class="form-group">
-          <label class="form-label" for="preferredHall">Preferred Seminar Hall <span class="required">*</span></label>
-          <select class="form-control" id="preferredHall" name="preferred_hall" required>
-            <option value="">-- Choose Preferred Hall --</option>
-            {% for h in halls %}
-            <option value="{{ h.id }}" data-capacity="{{ h.capacity }}" {% if form_data.preferred_hall == h.id|stringformat:"s" %}selected{% endif %}>
-              {{ h.name }} ({{ h.code }}) – Cap: {{ h.capacity }} [{{ h.building }}]
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <!-- Alternative Hall -->
-        <div class="form-group">
-          <label class="form-label" for="altHall">Alternative Seminar Hall (Optional)</label>
-          <select class="form-control" id="altHall" name="alternative_hall">
-            <option value="">-- None / No preference --</option>
-            {% for h in halls %}
-            <option value="{{ h.id }}" {% if form_data.alternative_hall == h.id|stringformat:"s" %}selected{% endif %}>
-              {{ h.name }} (Cap: {{ h.capacity }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-
-      <div style="margin-top: 14px;">
-        <button type="button" class="btn btn-outline" id="checkAvailabilityBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 14 14"></polyline>
-          </svg>
-          Check Availability
+      <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+        <button type="button" class="btn btn-primary" id="btnNextToStep2">
+          Select Hall &amp; Time Slot &rarr;
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- Section 3: Facilities Checkboxes -->
-  <div class="card">
-    <div class="card-header">
-      <h3>3. Audiovisual & Infrastructure Facilities Required</h3>
-      <span style="font-size:12px; color:#64748B;">Select all services needed for this session</span>
-    </div>
-    <div class="card-body">
-      <div class="checkbox-grid">
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_projector" {% if form_data.req_projector %}checked{% else %}checked{% endif %}>
-          <span>Projector & Screen</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_audio" {% if form_data.req_audio %}checked{% else %}checked{% endif %}>
-          <span>Audio PA System</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_microphone" {% if form_data.req_microphone %}checked{% else %}checked{% endif %}>
-          <span>Cordless / Collar Mics</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_wifi" {% if form_data.req_wifi %}checked{% else %}checked{% endif %}>
-          <span>High-Speed Wi-Fi</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_video_conferencing" {% if form_data.req_video_conferencing %}checked{% endif %}>
-          <span>Video Conferencing</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_ac" {% if form_data.req_ac %}checked{% else %}checked{% endif %}>
-          <span>Air Conditioning</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_stage" {% if form_data.req_stage %}checked{% endif %}>
-          <span>Stage & Dais Setup</span>
-        </label>
-        <label class="checkbox-label">
-          <input type="checkbox" name="req_recording" {% if form_data.req_recording %}checked{% endif %}>
-          <span>HD Video Recording</span>
-        </label>
-      </div>
-    </div>
-  </div>
-
-  <!-- Section 4: Additional Information & File Uploads -->
-  <div class="card">
-    <div class="card-header">
-      <h3>4. Additional Information & Supporting Documents</h3>
-    </div>
-    <div class="card-body">
-      <div class="form-grid">
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="chiefGuest">Chief Guest / Resource Person Details</label>
-          <input type="text" class="form-control" id="chiefGuest" name="chief_guest" placeholder="Name, Designation, Organization (e.g. Dr. A. Kumar, Senior Scientist, ISRO)" value="{{ form_data.chief_guest|default:'' }}">
+    <!-- ==========================================
+         STEP 2: SELECT HALL & TIME SLOT (VISUAL PLANNER)
+         ========================================== -->
+    <div class="wizard-step-pane" id="stepPane2">
+      <!-- Section Header -->
+      <div class="wizard-header-card">
+        <div class="wizard-header-left">
+          <div class="wizard-header-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div class="wizard-header-titles">
+            <h2>Select Hall &amp; Time Slot</h2>
+            <p>Choose a seminar hall and an available time slot for your event</p>
+          </div>
         </div>
-
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="eventDesc">Event Synopsis / Description</label>
-          <textarea class="form-control" id="eventDesc" name="event_description" rows="3" placeholder="Brief outline of event agenda and target student/faculty audience...">{{ form_data.event_description|default:'' }}</textarea>
-        </div>
-
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label class="form-label" for="specialReqs">Special Requirements / Seating Layout</label>
-          <textarea class="form-control" id="specialReqs" name="special_requirements" rows="2" placeholder="Any specific requirements regarding electrical power sockets, guest hospitality, banners...">{{ form_data.special_requirements|default:'' }}</textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="scheduleFile">Upload Programme Schedule (PDF / Image)</label>
-          <input type="file" class="form-control" id="scheduleFile" name="schedule_file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
-          <span class="form-help">Brochure or detailed minute-to-minute schedule.</span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="approvalDoc">Upload Approval Document (PDF / Image)</label>
-          <input type="file" class="form-control" id="approvalDoc" name="approval_doc_file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
-          <span class="form-help">Principal / Dean sanctioned approval letter if available.</span>
+        <div>
+          <a href="{% url 'bookings:calendar' %}" target="_blank" class="btn btn-outline btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            View Full Calendar
+          </a>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Form Actions -->
-  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-top:24px; padding-bottom:40px;">
-    <a href="{% url 'core:dashboard' %}" class="btn btn-outline">Cancel</a>
+      <!-- Date Navigation Carousel -->
+      <div class="date-carousel-card">
+        <button type="button" class="carousel-nav-btn" id="prevDayBtn" title="Previous Range">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
 
-    <div style="display:flex; align-items:center; gap:12px;">
-      <button type="submit" class="btn btn-outline" id="saveDraftBtn">
-        Save as Draft
-      </button>
-      <button type="submit" class="btn btn-primary" id="submitApprovalBtn">
-        Submit for Approval &rarr;
-      </button>
+        <div class="date-carousel-track" id="dateCarouselTrack">
+          <!-- Populated dynamically by JS with 7 days -->
+        </div>
+
+        <button type="button" class="carousel-nav-btn" id="nextDayBtn" title="Next Range">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+
+        <div class="goto-date-wrapper">
+          <button type="button" class="goto-date-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+            </svg>
+            Go to Date
+          </button>
+          <input type="date" class="hidden-date-picker" id="jumpDatePicker" value="2026-10-15">
+        </div>
+      </div>
+
+      <!-- Sub-section 1: Select a Seminar Hall -->
+      <div class="substep-header">
+        <div class="substep-title-group">
+          <span class="substep-badge">1</span>
+          <span class="substep-title">Select a Seminar Hall</span>
+        </div>
+        <div class="view-switch-group">
+          <button type="button" class="view-switch-btn active" id="btnCardView">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Card View
+          </button>
+          <button type="button" class="view-switch-btn" id="btnListView">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            List View
+          </button>
+        </div>
+      </div>
+
+      <!-- Hall Cards Grid -->
+      <div class="hall-cards-grid" id="hallCardsGrid">
+        {% for h in halls %}
+        <div class="hall-visual-card {% if forloop.first %}selected{% endif %}" 
+             data-hall-id="{{ h.id }}" 
+             data-hall-name="{{ h.name }}" 
+             data-capacity="{{ h.capacity }}" 
+             data-location="{{ h.building }}, {{ h.floor }}"
+             data-maintenance="{% if h.is_under_maintenance %}true{% else %}false{% endif %}">
+          <div class="hall-card-img-box">
+            {% if h.code == 'SH-01' or '1' in h.name %}
+            <img src="{% static 'images/halls/sh1.jpg' %}" alt="{{ h.name }}" class="hall-card-img">
+            {% elif h.code == 'SH-02' or '2' in h.name %}
+            <img src="{% static 'images/halls/sh2.jpg' %}" alt="{{ h.name }}" class="hall-card-img">
+            {% elif h.code == 'SH-03' or '3' in h.name %}
+            <img src="{% static 'images/halls/sh3.jpg' %}" alt="{{ h.name }}" class="hall-card-img">
+            {% elif h.code == 'SH-04' or '4' in h.name %}
+            <img src="{% static 'images/halls/sh4.jpg' %}" alt="{{ h.name }}" class="hall-card-img">
+            {% else %}
+            <img src="{% static 'images/halls/conference.jpg' %}" alt="{{ h.name }}" class="hall-card-img">
+            {% endif %}
+            <div class="hall-selected-check">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="hall-card-content">
+            <div class="hall-card-name">{{ h.name }}</div>
+            <div class="hall-card-meta">
+              <div class="hall-meta-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                </svg>
+                <span>Capacity: {{ h.capacity }}</span>
+              </div>
+              <div class="hall-meta-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{{ h.building }}, {{ h.floor }}</span>
+              </div>
+            </div>
+
+            <!-- Facilities Chips -->
+            <div class="hall-facility-pills">
+              <span class="hall-fac-pill">⚙ Projector</span>
+              <span class="hall-fac-pill">🔔 Audio</span>
+              <span class="hall-fac-pill">❄ AC</span>
+              <span class="hall-fac-pill">📶 Wi-Fi</span>
+              {% if h.capacity >= 150 %}<span class="hall-fac-pill">🏛 Stage</span>{% endif %}
+              {% if 'Conference' in h.name %}<span class="hall-fac-pill">📹 VC</span>{% endif %}
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="hall-status-line">
+              {% if h.is_under_maintenance %}
+              <span class="status-indicator-dot dot-maintenance"></span>
+              <span style="color:#64748B;">Under Maintenance</span>
+              {% elif forloop.counter == 3 %}
+              <span class="status-indicator-dot dot-limited"></span>
+              <span style="color:#D97706;">Limited Availability</span>
+              {% else %}
+              <span class="status-indicator-dot dot-available"></span>
+              <span style="color:#16A34A;">Available</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Sub-section 2: Select Time Slot -->
+      <div class="slot-selection-card" style="margin-top: 20px;">
+        <div class="slot-meta-bar">
+          <div class="substep-title-group">
+            <span class="substep-badge">2</span>
+            <span class="substep-title" id="selectedHallSlotTitle">Select Time Slot – {% if halls %}{{ halls.0.name }}{% else %}Seminar Hall 1{% endif %}</span>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text-muted);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+              <span>Hall operating hours: 08:00 AM – 06:00 PM</span>
+            </div>
+
+            <div class="slot-legend-group">
+              <span class="slot-legend-item"><span class="legend-dot-sm dot-green"></span> Available</span>
+              <span class="slot-legend-item"><span class="legend-dot-sm dot-blue"></span> Selected</span>
+              <span class="slot-legend-item"><span class="legend-dot-sm dot-amber"></span> Pending</span>
+              <span class="slot-legend-item"><span class="legend-dot-sm dot-red"></span> Booked</span>
+              <span class="slot-legend-item"><span class="legend-dot-sm dot-gray"></span> Maintenance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Time Range Selector & Presets -->
+        <div class="time-range-picker-bar">
+          <div class="time-range-row">
+            <div class="time-inputs-container">
+              <div class="time-input-group">
+                <label class="time-input-label" for="rangeStartTime">Start Time</label>
+                <div class="time-select-wrapper">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                  </svg>
+                  <select class="time-dropdown-select" id="rangeStartTime">
+                    <option value="08:00">08:00 AM</option>
+                    <option value="08:30">08:30 AM</option>
+                    <option value="09:00" selected>09:00 AM</option>
+                    <option value="09:30">09:30 AM</option>
+                    <option value="10:00">10:00 AM</option>
+                    <option value="10:30">10:30 AM</option>
+                    <option value="11:00">11:00 AM</option>
+                    <option value="11:30">11:30 AM</option>
+                    <option value="12:00">12:00 PM</option>
+                    <option value="12:30">12:30 PM</option>
+                    <option value="13:00">01:00 PM</option>
+                    <option value="13:30">01:30 PM</option>
+                    <option value="14:00">02:00 PM</option>
+                    <option value="14:30">02:30 PM</option>
+                    <option value="15:00">03:00 PM</option>
+                    <option value="15:30">03:30 PM</option>
+                    <option value="16:00">04:00 PM</option>
+                    <option value="16:30">04:30 PM</option>
+                    <option value="17:00">05:00 PM</option>
+                    <option value="17:30">05:30 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="time-arrow-separator">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </div>
+
+              <div class="time-input-group">
+                <label class="time-input-label" for="rangeEndTime">End Time</label>
+                <div class="time-select-wrapper">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 14 14"></polyline>
+                  </svg>
+                  <select class="time-dropdown-select" id="rangeEndTime">
+                    <option value="08:30">08:30 AM</option>
+                    <option value="09:00">09:00 AM</option>
+                    <option value="09:30">09:30 AM</option>
+                    <option value="10:00">10:00 AM</option>
+                    <option value="10:30">10:30 AM</option>
+                    <option value="11:00">11:00 AM</option>
+                    <option value="11:30">11:30 AM</option>
+                    <option value="12:00">12:00 PM</option>
+                    <option value="12:30" selected>12:30 PM</option>
+                    <option value="13:00">01:00 PM</option>
+                    <option value="13:30">01:30 PM</option>
+                    <option value="14:00">02:00 PM</option>
+                    <option value="14:30">02:30 PM</option>
+                    <option value="15:00">03:00 PM</option>
+                    <option value="15:30">03:30 PM</option>
+                    <option value="16:00">04:00 PM</option>
+                    <option value="16:30">04:30 PM</option>
+                    <option value="17:00">05:00 PM</option>
+                    <option value="17:30">05:30 PM</option>
+                    <option value="18:00">06:00 PM</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="duration-display-group">
+                <label class="time-input-label">Calculated Duration</label>
+                <div class="duration-pill-badge" id="calculatedDurationBadge">
+                  ⏱ 3h 30m (3.5 Hours)
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:11.5px; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
+              <span>💡 Select start &amp; end times or click quick session presets below</span>
+            </div>
+          </div>
+
+          <!-- Academic Presets -->
+          <div class="session-presets-bar">
+            <span class="preset-heading-label">Academic Presets:</span>
+            <button type="button" class="session-preset-btn active" data-start="09:00" data-end="12:30">
+              ☀️ Morning (09:00 AM – 12:30 PM)
+            </button>
+            <button type="button" class="session-preset-btn" data-start="13:30" data-end="16:30">
+              🌤 Afternoon (01:30 PM – 04:30 PM)
+            </button>
+            <button type="button" class="session-preset-btn" data-start="09:00" data-end="16:30">
+              📅 Full Day (09:00 AM – 04:30 PM)
+            </button>
+            <button type="button" class="session-preset-btn" data-start="14:00" data-end="16:00">
+              ⏰ 2-Hour Slot (02:00 PM – 04:00 PM)
+            </button>
+          </div>
+        </div>
+
+        <!-- Day Schedule Visual Timeline Ribbon (Replaces complicated buttons) -->
+        <div class="hall-timeline-wrapper">
+          <div class="timeline-header-label">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+              <span>Hall Schedule &amp; Availability Timeline (08:00 AM – 06:00 PM)</span>
+            </div>
+            <span class="timeline-status-badge" id="timelineStatusBadge">
+              <span class="legend-dot-sm dot-green"></span> Available for Selected Time
+            </span>
+          </div>
+
+          <div class="hall-schedule-track">
+            <!-- Hour Markers -->
+            <div class="timeline-hour-markers">
+              <span>08 AM</span>
+              <span>09 AM</span>
+              <span>10 AM</span>
+              <span>11 AM</span>
+              <span>12 PM</span>
+              <span>01 PM</span>
+              <span>02 PM</span>
+              <span>03 PM</span>
+              <span>04 PM</span>
+              <span>05 PM</span>
+              <span>06 PM</span>
+            </div>
+
+            <!-- Visual Bar with Blocks -->
+            <div class="timeline-bar-container">
+              <!-- User Selected Event Range Block -->
+              <div class="timeline-block user-selected-block" id="userSelectedTimelineBlock" style="left: 10%; width: 35%;">
+                <span class="timeline-block-label" id="timelineUserRangeLabel">Your Event: 09:00 AM – 12:30 PM (3.5h)</span>
+              </div>
+              <!-- Existing Booking Block (if any on this hall) -->
+              <div class="timeline-block booked-block" id="bookedTimelineBlock" style="left: 20%; width: 20%;">
+                <span class="timeline-block-label">Faculty Meeting (10:00 AM – 12:00 PM)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conflict Alert Banner -->
+        <div class="conflict-alert-box" id="conflictAlertBanner" style="display:flex;">
+          <div class="conflict-alert-icon">!</div>
+          <div class="conflict-alert-content">
+            <div class="conflict-alert-title" id="conflictAlertTitle">Seminar Hall 1 is unavailable from 10:00 AM – 12:00 PM.</div>
+            <div class="conflict-alert-desc" id="conflictAlertDesc">This time slot is already booked for "Faculty Meeting" by Mechanical Engineering Department.</div>
+          </div>
+        </div>
+
+        <!-- Suggested Alternatives Box -->
+        <div class="suggested-alternatives-card" id="suggestedAlternativesCard">
+          <div class="alternatives-top-row">
+            <div class="alternatives-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2">
+                <path d="M9 18h6"></path>
+                <path d="M10 22h4"></path>
+                <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path>
+              </svg>
+              <span>Suggested Alternatives</span>
+            </div>
+            <a href="{% url 'bookings:hall_availability' %}" target="_blank" class="alternatives-link">
+              View More Alternatives &rarr;
+            </a>
+          </div>
+
+          <div class="alternatives-grid">
+            <div class="alt-hall-item">
+              <div class="alt-hall-left">
+                <img src="{% static 'images/halls/sh2.jpg' %}" alt="Seminar Hall - 2" class="alt-hall-thumb">
+                <div class="alt-hall-info">
+                  <h4>Seminar Hall – 2</h4>
+                  <div class="alt-hall-meta">
+                    <span>👥 Capacity: 100</span>
+                  </div>
+                  <div class="alt-hall-avail">
+                    <span class="legend-dot-sm dot-green"></span>
+                    <span>Available at 10:00 AM</span>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm select-alt-hall-btn" data-hall-id="{% if halls|length > 1 %}{{ halls.1.id }}{% else %}2{% endif %}" data-hall-name="Seminar Hall – 2" data-capacity="100">
+                Select
+              </button>
+            </div>
+
+            <div class="alt-hall-item">
+              <div class="alt-hall-left">
+                <img src="{% static 'images/halls/sh3.jpg' %}" alt="Seminar Hall - 3" class="alt-hall-thumb">
+                <div class="alt-hall-info">
+                  <h4>Seminar Hall – 3</h4>
+                  <div class="alt-hall-meta">
+                    <span>👥 Capacity: 150</span>
+                  </div>
+                  <div class="alt-hall-avail">
+                    <span class="legend-dot-sm dot-green"></span>
+                    <span>Available at 10:00 AM</span>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm select-alt-hall-btn" data-hall-id="{% if halls|length > 2 %}{{ halls.2.id }}{% else %}3{% endif %}" data-hall-name="Seminar Hall – 3" data-capacity="150">
+                Select
+              </button>
+            </div>
+
+            <div class="alt-hall-item">
+              <div class="alt-hall-left">
+                <img src="{% static 'images/halls/conference.jpg' %}" alt="Conference Hall" class="alt-hall-thumb">
+                <div class="alt-hall-info">
+                  <h4>Conference Hall</h4>
+                  <div class="alt-hall-meta">
+                    <span>👥 Capacity: 60</span>
+                  </div>
+                  <div class="alt-hall-avail">
+                    <span class="legend-dot-sm dot-green"></span>
+                    <span>Available at 10:00 AM</span>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline btn-sm select-alt-hall-btn" data-hall-id="{% if halls|length > 3 %}{{ halls.3.id }}{% else %}4{% endif %}" data-hall-name="Conference Hall" data-capacity="60">
+                Select
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+        <button type="button" class="btn btn-outline" id="btnBackToStep1">&larr; Back to Event Details</button>
+        <button type="button" class="btn btn-primary" id="btnNextToStep3">Continue to Facilities &rarr;</button>
+      </div>
     </div>
-  </div>
-</form>
+
+    <!-- ==========================================
+         STEP 3: FACILITIES
+         ========================================== -->
+    <div class="wizard-step-pane" id="stepPane3" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3>3. Required Audiovisual &amp; Technical Facilities</h3>
+          <span style="font-size:11px; color:var(--text-muted);">Configured on-site before session start</span>
+        </div>
+        <div class="card-body">
+          <div class="checkbox-grid">
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_projector" checked>
+              <span>Projector &amp; Screen</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_audio" checked>
+              <span>Audio PA System</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_microphone" checked>
+              <span>Cordless / Collar Mics</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_wifi" checked>
+              <span>High-Speed Wi-Fi</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_video_conferencing">
+              <span>Video Conferencing</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_ac" checked>
+              <span>Air Conditioning</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_stage">
+              <span>Stage &amp; Dais Setup</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" name="req_recording">
+              <span>HD Video Recording</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:20px;">
+        <button type="button" class="btn btn-outline" id="btnBackToStep2">&larr; Back to Hall Selection</button>
+        <button type="button" class="btn btn-primary" id="btnNextToStep4">Continue to Additional Info &rarr;</button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         STEP 4: ADDITIONAL INFORMATION
+         ========================================== -->
+    <div class="wizard-step-pane" id="stepPane4" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3>4. Event Description &amp; Attachments</h3>
+          <span style="font-size:11px; color:var(--text-muted);">Additional context for HOD and Coordinator review</span>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label" for="chiefGuest">Chief Guest / Resource Person</label>
+              <input type="text" class="form-control" id="chiefGuest" name="chief_guest" placeholder="e.g. Dr. K. Venkataraman, Director of Research, IIT Madras" value="{{ form_data.chief_guest|default:'' }}">
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label" for="eventDesc">Event Synopsis</label>
+              <textarea class="form-control" id="eventDesc" name="event_description" rows="3" placeholder="Brief outline of event agenda, objectives, and keynote topics...">{{ form_data.event_description|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label class="form-label" for="specialReqs">Special Requirements</label>
+              <textarea class="form-control" id="specialReqs" name="special_requirements" rows="2" placeholder="Specific seating arrangement, dias banners, guest refreshments, power extensions...">{{ form_data.special_requirements|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="scheduleFile">Programme Schedule (PDF / Image)</label>
+              <input type="file" class="form-control" id="scheduleFile" name="schedule_file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="approvalDoc">Supporting Approval Letter (Optional)</label>
+              <input type="file" class="form-control" id="approvalDoc" name="approval_doc_file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:20px;">
+        <button type="button" class="btn btn-outline" id="btnBackToStep3">&larr; Back to Facilities</button>
+        <button type="button" class="btn btn-primary" id="btnNextToStep5">Review &amp; Submit &rarr;</button>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         STEP 5: REVIEW & SUBMIT
+         ========================================== -->
+    <div class="wizard-step-pane" id="stepPane5" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3>5. Review Reservation Summary</h3>
+          <span style="font-size:11px; color:var(--text-muted);">Confirm reservation details before submission</span>
+        </div>
+        <div class="card-body">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:18px; padding:8px 0 20px;">
+            <div>
+              <span class="detail-label">Event Title</span>
+              <div class="detail-val" id="reviewEventName">Annual Technology Seminar</div>
+            </div>
+            <div>
+              <span class="detail-label">Seminar Hall</span>
+              <div class="detail-val" id="reviewHallName">Seminar Hall – 1</div>
+            </div>
+            <div>
+              <span class="detail-label">Reservation Date</span>
+              <div class="detail-val" id="reviewDate">Thu, 15 Oct 2026</div>
+            </div>
+            <div>
+              <span class="detail-label">Time Window</span>
+              <div class="detail-val" id="reviewTime">02:00 PM – 04:00 PM (2 Hours)</div>
+            </div>
+            <div>
+              <span class="detail-label">Department</span>
+              <div class="detail-val" id="reviewDept">Information Technology</div>
+            </div>
+            <div>
+              <span class="detail-label">Expected Participants</span>
+              <div class="detail-val" id="reviewParticipants">200 Attendees</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px; flex-wrap:wrap; gap:12px;">
+        <button type="button" class="btn btn-outline" id="btnBackToStep4">&larr; Back to Details</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button type="button" class="btn btn-outline" id="saveDraftActionBtn">Save as Draft</button>
+          <button type="button" class="btn btn-primary" id="finalSubmitActionBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Submit for Approval
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         STICKY BOTTOM SUMMARY BAR
+         ========================================== -->
+    <div class="booking-sticky-bar" id="bookingStickyBar">
+      <div class="sticky-summary-items">
+        <div class="sticky-summary-col">
+          <div class="sticky-summary-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+          </div>
+          <div class="sticky-summary-info">
+            <span class="sticky-summary-label">Selected Hall</span>
+            <span class="sticky-summary-val" id="stickyHallVal">Seminar Hall – 1</span>
+          </div>
+        </div>
+
+        <div class="sticky-summary-col">
+          <div class="sticky-summary-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+            </svg>
+          </div>
+          <div class="sticky-summary-info">
+            <span class="sticky-summary-label">Date</span>
+            <span class="sticky-summary-val" id="stickyDateVal">15 Oct 2026</span>
+          </div>
+        </div>
+
+        <div class="sticky-summary-col">
+          <div class="sticky-summary-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 14 14"></polyline>
+            </svg>
+          </div>
+          <div class="sticky-summary-info">
+            <span class="sticky-summary-label">Time Slot</span>
+            <span class="sticky-summary-val" id="stickyTimeVal">02:00 PM – 04:00 PM (2 Hours)</span>
+          </div>
+        </div>
+
+        <div class="sticky-summary-col">
+          <div class="sticky-summary-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <div class="sticky-summary-info">
+            <span class="sticky-summary-label">Capacity</span>
+            <span class="sticky-summary-val" id="stickyCapacityVal">200</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sticky-summary-actions">
+        <button type="button" class="btn btn-outline" id="stickyBackBtn">&larr; Back</button>
+        <button type="button" class="btn btn-primary" id="stickyContinueBtn">Continue to Facilities &rarr;</button>
+      </div>
+    </div>
+  </form>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/booking_form.js' %}"></script>
-<script>
-  document.getElementById('saveDraftBtn').addEventListener('click', () => {
-    document.getElementById('actionTypeInput').value = 'DRAFT';
-  });
-  document.getElementById('submitApprovalBtn').addEventListener('click', () => {
-    document.getElementById('actionTypeInput').value = 'SUBMIT';
-  });
-</script>
+<script src="{% static 'js/booking_wizard.js' %}"></script>
 {% endblock %}

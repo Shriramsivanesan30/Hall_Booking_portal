@@ -8,10 +8,16 @@
 <div class="page-header">
   <div class="page-title-group">
     <h1>Booking History: {{ hall.name }} ({{ hall.code }})</h1>
-    <p>Complete historical log of all past and upcoming event reservations for this hall.</p>
+    <p>Historical record of reservations for this seminar hall.</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'halls:detail' hall.id %}" class="btn btn-outline">&larr; Back to Hall</a>
+    <a href="{% url 'halls:detail' hall.id %}" class="btn btn-outline btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Hall
+    </a>
   </div>
 </div>
 
@@ -33,19 +39,19 @@
       <tbody>
         {% for b in bookings %}
         <tr>
-          <td style="font-weight:700; color:#123B72; white-space:nowrap;">{{ b.booking_id }}</td>
-          <td style="font-weight:600; white-space:nowrap;">{{ b.event_date|date:"d M Y" }}</td>
-          <td style="color:#1D5FA7; font-weight:500; white-space:nowrap;">
+          <td style="font-weight:700; color:var(--primary); white-space:nowrap;">{{ b.booking_id }}</td>
+          <td style="font-weight:600; white-space:nowrap; color:var(--text-primary); font-size:12.5px;">{{ b.event_date|date:"d M Y" }}</td>
+          <td style="color:var(--text-secondary); font-size:12px; white-space:nowrap;">
             {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}
           </td>
           <td>
-            <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
+            <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:var(--primary);">
               {{ b.event_name }}
             </a>
-            <div style="font-size:11px; color:#64748B;">{{ b.event_type }} &bull; {{ b.expected_participants }} participants</div>
+            <div style="font-size:11px; color:var(--text-muted);">{{ b.event_type }} &bull; {{ b.expected_participants }} participants</div>
           </td>
           <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
-          <td>{{ b.user.get_full_name|default:b.user.username }}</td>
+          <td style="font-size:12.5px; color:var(--text-secondary);">{{ b.user.get_full_name|default:b.user.username }}</td>
           <td><span class="badge {{ b.status_badge_class }}">{{ b.get_status_display }}</span></td>
           <td>
             <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">Details</a>
@@ -53,8 +59,17 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8" style="text-align:center; padding:40px; color:#64748B;">
-            No historical bookings on record for this seminar hall.
+          <td colspan="8">
+            <div class="empty-state">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <h3>No booking history</h3>
+              <p>No historical reservations found for this hall.</p>
+            </div>
           </td>
         </tr>
         {% endfor %}

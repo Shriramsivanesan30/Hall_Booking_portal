@@ -1,137 +1,125 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Institutional Analytics &amp; Reports{% endblock %}
-{% block breadcrumb %}Reports &amp; Analytics{% endblock %}
+{% block title %}Reports & Analytics{% endblock %}
+{% block breadcrumb %}Reports{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-title-group">
-    <h1>Seminar Hall Utilization Reports &amp; Analytics</h1>
-    <p>Comprehensive institutional statistics, hall occupancy metrics, and department booking frequency.</p>
+    <h1>Reports & Analytics</h1>
+    <p>Hall utilization metrics, department statistics, and booking trends.</p>
   </div>
   <div class="page-actions">
-    <button type="button" class="btn btn-outline" onclick="window.print()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <button type="button" class="btn btn-outline btn-sm" onclick="window.print()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 6 2 18 2 18 9"></polyline>
         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
         <rect x="6" y="14" width="12" height="8"></rect>
       </svg>
-      Print Report
+      Print
     </button>
-    <a href="{% url 'reports:export_excel' %}?start_date={{ start_date }}&end_date={{ end_date }}&department={{ dept_id }}&hall={{ hall_id }}&status={{ status_filter }}" class="btn btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <a href="{% url 'reports:export_excel' %}?start_date={{ start_date }}&end_date={{ end_date }}&department={{ dept_id }}&hall={{ hall_id }}&status={{ status_filter }}" class="btn btn-primary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>
         <line x1="12" y1="15" x2="12" y2="3"></line>
       </svg>
-      Export Excel (.xlsx)
+      Export Excel
     </a>
   </div>
 </div>
 
-<!-- Filters Bar -->
-<div class="card" style="margin-bottom: 24px;">
-  <div class="card-body" style="padding: 16px 20px;">
-    <form method="GET" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-      <div style="display:flex; align-items:center; gap:6px;">
-        <label style="font-size:12px; font-weight:600; color:#64748B;">From:</label>
+<!-- Filters -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="filter-bar">
+    <form method="GET" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%;">
+      <div style="display:flex; align-items:center; gap:4px;">
+        <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">From:</label>
         <input type="date" name="start_date" class="form-control" style="width:auto;" value="{{ start_date }}">
       </div>
-      <div style="display:flex; align-items:center; gap:6px;">
-        <label style="font-size:12px; font-weight:600; color:#64748B;">To:</label>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">To:</label>
         <input type="date" name="end_date" class="form-control" style="width:auto;" value="{{ end_date }}">
       </div>
-
-      <select name="department" class="form-control" style="width:auto; min-width:160px;">
-        <option value="">All Departments</option>
+      <select name="department" class="form-control" style="width:auto; min-width:140px;">
+        <option value="">All Depts</option>
         {% for d in departments %}
         <option value="{{ d.id }}" {% if dept_id == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
         {% endfor %}
       </select>
-
-      <select name="hall" class="form-control" style="width:auto; min-width:160px;">
-        <option value="">All Seminar Halls</option>
+      <select name="hall" class="form-control" style="width:auto; min-width:140px;">
+        <option value="">All Halls</option>
         {% for h in halls %}
         <option value="{{ h.id }}" {% if hall_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
         {% endfor %}
       </select>
-
-      <select name="status" class="form-control" style="width:auto; min-width:150px;">
-        <option value="">All Statuses</option>
+      <select name="status" class="form-control" style="width:auto; min-width:130px;">
+        <option value="">All Status</option>
         {% for code, label in status_choices %}
         <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
-
-      <button type="submit" class="btn btn-outline">Apply Filters</button>
-      <a href="{% url 'reports:dashboard' %}" class="btn btn-outline" style="color:#64748B;">Reset</a>
+      <button type="submit" class="btn btn-outline btn-sm">Apply</button>
+      <a href="{% url 'reports:dashboard' %}" class="btn btn-outline btn-sm" style="color:var(--text-muted);">Reset</a>
     </form>
   </div>
 </div>
 
-<!-- Aggregations Summary -->
+<!-- Summary Stats -->
 <div class="stats-grid">
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Total Bookings in Range</span>
+      <span class="stat-label">Total Bookings</span>
       <span class="stat-value">{{ total_in_range }}</span>
     </div>
-    <div class="stat-icon icon-blue">&#128197;</div>
+    <div class="stat-icon icon-blue">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
   </div>
-
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Confirmed / Approved</span>
+      <span class="stat-label">Approved</span>
       <span class="stat-value">{{ approved_in_range }}</span>
     </div>
-    <div class="stat-icon icon-green">&#10003;</div>
+    <div class="stat-icon icon-green">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
   </div>
-
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Pending In Review</span>
+      <span class="stat-label">Pending</span>
       <span class="stat-value">{{ pending_in_range }}</span>
     </div>
-    <div class="stat-icon icon-orange">&#9203;</div>
+    <div class="stat-icon icon-orange">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+    </div>
   </div>
-
   <div class="stat-card">
     <div class="stat-info">
-      <span class="stat-label">Cancelled / Postponed</span>
+      <span class="stat-label">Cancelled</span>
       <span class="stat-value">{{ cancelled_in_range }}</span>
     </div>
-    <div class="stat-icon icon-neutral">&#10005;</div>
+    <div class="stat-icon icon-neutral">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
   </div>
 </div>
 
-<!-- Breakdown Grids -->
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
-  <!-- Hall Utilization Table -->
+<!-- Breakdown -->
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
   <div class="card">
-    <div class="card-header">
-      <h3>Hall Utilization (Confirmed Events)</h3>
-    </div>
+    <div class="card-header"><h3>Hall Utilization</h3></div>
     <div class="table-responsive">
       <table class="data-table">
-        <thead>
-          <tr>
-            <th>Seminar Hall</th>
-            <th>Capacity</th>
-            <th>Events Count</th>
-            <th>Hours Utilized</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Hall</th><th>Capacity</th><th>Events</th><th>Hours</th></tr></thead>
         <tbody>
           {% for h in hall_breakdown %}
           <tr>
-            <td>
-              <strong>{{ h.name }}</strong>
-              <div style="font-size:11px; color:#64748B;">{{ h.building }}</div>
-            </td>
+            <td><strong>{{ h.name }}</strong><div style="font-size:11px; color:var(--text-muted);">{{ h.building }}</div></td>
             <td>{{ h.capacity }}</td>
-            <td style="font-weight:700; color:#123B72;">{{ h.total_bookings }}</td>
-            <td style="font-weight:700; color:#1D5FA7;">{{ h.total_hours|default:"0" }} hrs</td>
+            <td style="font-weight:700; color:var(--primary);">{{ h.total_bookings }}</td>
+            <td style="font-weight:600; color:var(--secondary);">{{ h.total_hours|default:"0" }} hrs</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -139,26 +127,17 @@
     </div>
   </div>
 
-  <!-- Department-wise Usage Breakdown -->
   <div class="card">
-    <div class="card-header">
-      <h3>Department-wise Booking Distribution</h3>
-    </div>
+    <div class="card-header"><h3>Department Distribution</h3></div>
     <div class="table-responsive">
       <table class="data-table">
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th>Code</th>
-            <th>Bookings Count</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Department</th><th>Code</th><th>Bookings</th></tr></thead>
         <tbody>
           {% for d in dept_breakdown %}
           <tr>
             <td><strong>{{ d.name }}</strong></td>
             <td><span class="badge badge-neutral">{{ d.code }}</span></td>
-            <td style="font-weight:700; color:#123B72;">{{ d.count }}</td>
+            <td style="font-weight:700; color:var(--primary);">{{ d.count }}</td>
           </tr>
           {% endfor %}
         </tbody>
@@ -167,61 +146,46 @@
   </div>
 </div>
 
-<!-- Peak Booking Hours Card -->
-<div class="card" style="margin-bottom: 24px;">
-  <div class="card-header">
-    <h3>Peak Hall Usage Slots</h3>
-  </div>
+<!-- Peak Hours -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header"><h3>Peak Usage Slots</h3></div>
   <div class="card-body">
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
       {% for slot in peak_hours_data %}
-      <div style="background:#F8FAFD; border:1px solid #E2E8F0; border-radius:8px; padding:16px; text-align:center;">
-        <span style="font-size:12px; color:#64748B; font-weight:600; display:block;">{{ slot.slot }}</span>
-        <div style="font-size:24px; font-weight:700; color:#123B72; margin-top:4px;">{{ slot.count }} Events</div>
+      <div style="background:var(--neutral-bg); border-radius:var(--radius-md); padding:14px; text-align:center;">
+        <span style="font-size:11.5px; color:var(--text-secondary); font-weight:600;">{{ slot.slot }}</span>
+        <div style="font-size:22px; font-weight:700; color:var(--primary); margin-top:2px;">{{ slot.count }}</div>
       </div>
       {% endfor %}
     </div>
   </div>
 </div>
 
-<!-- Detailed Records Table -->
+<!-- Detailed Records -->
 <div class="card">
   <div class="card-header">
-    <h3>Filtered Booking Records</h3>
-    <span style="font-size:12px; color:#64748B;">Showing top 50 matches</span>
+    <h3>Filtered Records</h3>
+    <span style="font-size:11px; color:var(--text-muted);">Top 50 matches</span>
   </div>
   <div class="table-responsive">
     <table class="data-table">
-      <thead>
-        <tr>
-          <th>Booking ID</th>
-          <th>Event Name</th>
-          <th>Department</th>
-          <th>Hall</th>
-          <th>Date</th>
-          <th>Time Slot</th>
-          <th>Duration</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+      <thead><tr><th>ID</th><th>Event</th><th>Dept</th><th>Hall</th><th>Date</th><th>Time</th><th>Duration</th><th>Status</th></tr></thead>
       <tbody>
         {% for b in bookings %}
         <tr>
-          <td style="font-weight:700; color:#123B72;">{{ b.booking_id }}</td>
-          <td>
-            <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">{{ b.event_name }}</a>
-          </td>
+          <td style="font-weight:600;">{{ b.booking_id }}</td>
+          <td><a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:var(--text-primary);">{{ b.event_name }}</a></td>
           <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
           <td>{{ b.get_active_hall.name }}</td>
-          <td>{{ b.event_date|date:"d M Y" }}</td>
-          <td>{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</td>
+          <td style="white-space:nowrap;">{{ b.event_date|date:"d M Y" }}</td>
+          <td style="white-space:nowrap;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</td>
           <td>{{ b.duration_hours }} hrs</td>
           <td><span class="badge {{ b.status_badge_class }}">{{ b.get_status_display }}</span></td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="8" style="text-align:center; padding:36px; color:#64748B;">
-            No bookings found for the selected reporting period.
+          <td colspan="8">
+            <div class="empty-state" style="padding:24px;"><div class="empty-state-desc">No bookings for this period.</div></div>
           </td>
         </tr>
         {% endfor %}

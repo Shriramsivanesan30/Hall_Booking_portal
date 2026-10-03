@@ -1,87 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Seminar Hall Master{% endblock %}
+{% block title %}Hall Master{% endblock %}
 {% block breadcrumb %}Hall Master{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-title-group">
-    <h1>Seminar Hall Master Directory</h1>
-    <p>Administrative registry of all institutional seminar halls, facilities, and maintenance statuses.</p>
+    <h1>Seminar Hall Directory</h1>
+    <p>All institutional seminar halls, facilities, and statuses.</p>
   </div>
   <div class="page-actions">
     {% if can_manage %}
     <a href="{% url 'halls:create' %}" class="btn btn-primary">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"></line>
         <line x1="5" y1="12" x2="19" y2="12"></line>
       </svg>
-      Add New Seminar Hall
+      Add Hall
     </a>
     {% endif %}
   </div>
 </div>
 
-<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:20px;">
+<div class="hall-grid">
   {% for hall in halls %}
-  <div class="card" style="margin-bottom:0;">
-    <div class="card-header">
+  <div class="hall-card">
+    <div class="hall-card-header">
       <div>
-        <h3 style="color:#123B72; font-size:16px;">{{ hall.name }}</h3>
-        <span style="font-size:12px; color:#64748B;">Code: <strong>{{ hall.code }}</strong></span>
+        <strong style="font-size:14px; color:var(--text-primary);">{{ hall.name }}</strong>
+        <span style="font-size:11px; color:var(--text-muted); display:block;">{{ hall.code }}</span>
       </div>
-      <div>
-        {% if hall.is_under_maintenance %}
-        <span class="badge badge-neutral" style="background:#F1F5F9; color:#475569;">Under Maintenance</span>
-        {% elif hall.is_active %}
-        <span class="badge badge-success">Operational</span>
-        {% else %}
-        <span class="badge badge-danger">Disabled</span>
-        {% endif %}
-      </div>
+      {% if hall.is_under_maintenance %}
+      <span class="badge badge-neutral">Maintenance</span>
+      {% elif hall.is_active %}
+      <span class="badge badge-success">Active</span>
+      {% else %}
+      <span class="badge badge-danger">Disabled</span>
+      {% endif %}
     </div>
-    <div class="card-body">
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; font-size:13px; margin-bottom:16px;">
+    <div class="hall-card-body">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:12.5px; margin-bottom:12px;">
         <div>
-          <span style="color:#64748B; font-size:11px; font-weight:600; display:block;">BUILDING</span>
+          <span style="color:var(--text-muted); font-size:10.5px; font-weight:600; display:block;">BUILDING</span>
           <strong>{{ hall.building }}</strong>
         </div>
         <div>
-          <span style="color:#64748B; font-size:11px; font-weight:600; display:block;">FLOOR</span>
+          <span style="color:var(--text-muted); font-size:10.5px; font-weight:600; display:block;">FLOOR</span>
           <strong>{{ hall.floor }}</strong>
         </div>
         <div>
-          <span style="color:#64748B; font-size:11px; font-weight:600; display:block;">SEATING CAPACITY</span>
-          <strong style="color:#123B72; font-size:15px;">{{ hall.capacity }} Seats</strong>
+          <span style="color:var(--text-muted); font-size:10.5px; font-weight:600; display:block;">CAPACITY</span>
+          <strong style="color:var(--primary); font-size:14px;">{{ hall.capacity }}</strong>
         </div>
         <div>
-          <span style="color:#64748B; font-size:11px; font-weight:600; display:block;">FACULTY IN-CHARGE</span>
+          <span style="color:var(--text-muted); font-size:10.5px; font-weight:600; display:block;">IN-CHARGE</span>
           <strong>{{ hall.responsible_person|default:"Coordinator" }}</strong>
         </div>
       </div>
 
-      <div style="border-top:1px solid #E2E8F0; padding-top:12px; margin-bottom:14px;">
-        <span style="color:#64748B; font-size:11px; font-weight:700; text-transform:uppercase; display:block; margin-bottom:6px;">
-          Configured Facilities:
-        </span>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          {% for fac in hall.available_facilities_list %}
-          <span style="font-size:11px; background:#EAF3FF; color:#1D5FA7; padding:2px 8px; border-radius:4px; font-weight:500;">
-            {{ fac }}
-          </span>
-          {% empty %}
-          <span style="font-size:11.5px; color:#94A3B8;">No facilities mapped</span>
-          {% endfor %}
-        </div>
+      <div style="display:flex; gap:4px; flex-wrap:wrap;">
+        {% for fac in hall.available_facilities_list %}
+        <span class="facility-tag">{{ fac }}</span>
+        {% empty %}
+        <span style="font-size:11px; color:var(--text-muted);">No facilities mapped</span>
+        {% endfor %}
       </div>
-
-      <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid #E2E8F0; padding-top:12px;">
-        <a href="{% url 'halls:detail' hall.id %}" class="btn btn-sm btn-outline">View Details</a>
-        {% if can_manage %}
-        <a href="{% url 'halls:edit' hall.id %}" class="btn btn-sm btn-outline">Edit Hall</a>
-        {% endif %}
-      </div>
+    </div>
+    <div class="hall-card-footer">
+      <a href="{% url 'halls:detail' hall.id %}" class="btn btn-sm btn-outline">Details</a>
+      {% if can_manage %}
+      <a href="{% url 'halls:edit' hall.id %}" class="btn btn-sm btn-outline">Edit</a>
+      {% endif %}
     </div>
   </div>
   {% endfor %}

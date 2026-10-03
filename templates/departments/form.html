@@ -11,7 +11,13 @@
     <p>Department configuration for student, faculty, and booking management.</p>
   </div>
   <div class="page-actions">
-    <a href="{% url 'departments:list' %}" class="btn btn-outline">Back to List</a>
+    <a href="{% url 'departments:list' %}" class="btn btn-outline btn-sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Back to Departments
+    </a>
   </div>
 </div>
 
@@ -20,6 +26,7 @@
   <div class="card">
     <div class="card-header">
       <h3>Department Details</h3>
+      <span style="font-size:11px; color:var(--text-muted);">Institutional identification</span>
     </div>
     <div class="card-body">
       <div class="form-grid">
@@ -39,7 +46,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="contactEmail">Departmental Contact Email</label>
+          <label class="form-label" for="contactEmail">Department Contact Email</label>
           <input type="email" class="form-control" id="contactEmail" name="contact_email" placeholder="hod.dept@mcet.in" value="{{ dept.contact_email|default:'' }}">
         </div>
 
@@ -49,10 +56,10 @@
         </div>
 
         {% if action == 'Edit' %}
-        <div class="form-group" style="grid-column: 1 / -1;">
+        <div class="form-group" style="grid-column: 1 / -1; margin-top: 6px;">
           <label class="checkbox-label">
             <input type="checkbox" name="is_active" {% if dept.is_active %}checked{% endif %}>
-            <span>Department Active</span>
+            <span>Department Active &amp; Selectable in Bookings</span>
           </label>
         </div>
         {% endif %}
@@ -62,7 +69,12 @@
 
   <div style="display:flex; align-items:center; justify-content:space-between; margin-top:20px; padding-bottom:40px;">
     <a href="{% url 'departments:list' %}" class="btn btn-outline">Cancel</a>
-    <button type="submit" class="btn btn-primary">{{ action }} Department &rarr;</button>
+    <button type="submit" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      {{ action }} Department
+    </button>
   </div>
 </form>
 {% endblock %}

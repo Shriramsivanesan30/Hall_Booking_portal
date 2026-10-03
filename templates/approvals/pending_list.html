@@ -1,41 +1,38 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Pending Approvals Queue{% endblock %}
+{% block title %}Pending Approvals{% endblock %}
 {% block breadcrumb %}Pending Approvals{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-title-group">
-    <h1>Pending Approvals Queue</h1>
-    <p>Review, verify facilities, add remarks, and process booking requests awaiting your departmental or institutional authorization.</p>
+    <h1>Pending Approvals</h1>
+    <p>Booking requests awaiting your review and authorization.</p>
   </div>
 </div>
 
-<div class="card" style="margin-bottom: 20px;">
-  <div class="card-body" style="padding: 14px 20px;">
-    <form method="GET" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+<div class="card" style="margin-bottom: 16px;">
+  <div class="filter-bar">
+    <form method="GET" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; width:100%;">
       {% if user_profile.is_admin_user %}
-      <select name="stage" class="form-control" style="width: auto; min-width: 180px;">
-        <option value="">All Approval Stages</option>
+      <select name="stage" class="form-control" style="width:auto; min-width:170px;">
+        <option value="">All Stages</option>
         {% for code, label in stage_choices %}
         <option value="{{ code }}" {% if stage_filter == code %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
-
-      <select name="department" class="form-control" style="width: auto; min-width: 160px;">
+      <select name="department" class="form-control" style="width:auto; min-width:150px;">
         <option value="">All Departments</option>
         {% for d in departments %}
         <option value="{{ d.id }}" {% if dept_id == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
         {% endfor %}
       </select>
       {% endif %}
-
-      <input type="text" name="search" class="form-control" placeholder="Search by booking ID or event name..." value="{{ search }}" style="flex:1; min-width:180px;">
-
-      <button type="submit" class="btn btn-outline">Filter</button>
+      <input type="text" name="search" class="form-control search-input" placeholder="Search by ID or event name..." value="{{ search }}">
+      <button type="submit" class="btn btn-outline btn-sm">Filter</button>
       {% if stage_filter or dept_id or search %}
-      <a href="{% url 'approvals:pending_list' %}" class="btn btn-outline" style="color:#64748B;">Reset</a>
+      <a href="{% url 'approvals:pending_list' %}" class="btn btn-outline btn-sm" style="color:var(--text-muted);">Reset</a>
       {% endif %}
     </form>
   </div>
@@ -46,82 +43,67 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th>Booking ID</th>
-          <th>Event Name</th>
+          <th>ID</th>
+          <th>Event</th>
           <th>Department</th>
-          <th>Seminar Hall</th>
-          <th>Date &amp; Time</th>
+          <th>Hall</th>
+          <th>Date & Time</th>
           <th>Participants</th>
-          <th>Awaiting Stage</th>
-          <th>Action</th>
+          <th>Stage</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% if page_obj.object_list %}
           {% for b in page_obj.object_list %}
           <tr>
-            <td style="font-weight:700; color:#123B72; white-space:nowrap;">{{ b.booking_id }}</td>
+            <td style="font-weight:600; white-space:nowrap;">{{ b.booking_id }}</td>
             <td>
-              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#123B72;">
-                {{ b.event_name }}
-              </a>
-              <div style="font-size:11.5px; color:#64748B;">
-                Requested by {{ b.user.get_full_name|default:b.user.username }} &bull; {{ b.event_type }}
-              </div>
+              <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:var(--text-primary);">{{ b.event_name }}</a>
+              <div style="font-size:11px; color:var(--text-muted);">By {{ b.user.get_full_name|default:b.user.username }} · {{ b.event_type }}</div>
             </td>
             <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
             <td>
               <strong>{{ b.get_active_hall.name }}</strong>
-              <div style="font-size:11px; color:#64748B;">{{ b.get_active_hall.building }}</div>
+              <div style="font-size:11px; color:var(--text-muted);">{{ b.get_active_hall.building }}</div>
             </td>
             <td style="white-space:nowrap;">
-              <strong style="color:#123B72;">{{ b.event_date|date:"D, d M Y" }}</strong>
-              <div style="font-size:12px; color:#1D5FA7;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</div>
+              <strong>{{ b.event_date|date:"D, d M" }}</strong>
+              <div style="font-size:11.5px; color:var(--secondary);">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</div>
             </td>
             <td>{{ b.expected_participants }}</td>
+            <td><span class="badge badge-warning">{{ b.get_current_approval_stage_display }}</span></td>
             <td>
-              <span class="badge badge-warning" style="font-size:11.5px;">
-                {{ b.get_current_approval_stage_display }}
-              </span>
-            </td>
-            <td>
-              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-primary">
-                Review &amp; Approve &rarr;
-              </a>
+              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-primary">Review →</a>
             </td>
           </tr>
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="8" style="text-align:center; padding:48px; color:#64748B;">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" style="margin-bottom:8px; display:inline-block;">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M8 12h8"></path>
-              </svg>
-              <div style="font-size:15px; font-weight:600; color:#123B72;">No Pending Approvals!</div>
-              <p style="font-size:12.5px; margin-top:2px;">All booking requests in your approval queue have been processed.</p>
+            <td colspan="8">
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                </div>
+                <div class="empty-state-title">All caught up!</div>
+                <div class="empty-state-desc">No pending approval requests in your queue.</div>
+              </div>
             </td>
           </tr>
         {% endif %}
       </tbody>
     </table>
   </div>
-
   {% if page_obj.has_other_pages %}
   <div class="pagination-wrapper">
-    <div class="pagination-info">
-      Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} pending requests
-    </div>
+    <div class="pagination-info">Showing {{ page_obj.start_index }} – {{ page_obj.end_index }} of {{ page_obj.paginator.count }}</div>
     <div class="pagination-links">
-      {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}&stage={{ stage_filter }}&department={{ dept_id }}&search={{ search }}" class="page-btn">&larr; Prev</a>
-      {% endif %}
-
+      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&stage={{ stage_filter }}&department={{ dept_id }}&search={{ search }}" class="page-btn">← Prev</a>{% endif %}
       <span class="page-btn active">{{ page_obj.number }}</span>
-
-      {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}&stage={{ stage_filter }}&department={{ dept_id }}&search={{ search }}" class="page-btn">Next &rarr;</a>
-      {% endif %}
+      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&stage={{ stage_filter }}&department={{ dept_id }}&search={{ search }}" class="page-btn">Next →</a>{% endif %}
     </div>
   </div>
   {% endif %}
