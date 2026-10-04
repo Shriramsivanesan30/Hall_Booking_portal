@@ -1,0 +1,664 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Coordinator Dashboard{% endblock %}
+{% block breadcrumb %}Coordinator Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   Coordinator Dashboard – Hall Allocation & Central Scheduling
+   ════════════════════════════════════════════════════════════════ */
+
+.coord-wrap {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .coord-wrap { grid-template-columns: 1fr; }
+}
+
+.coord-hero {
+  background: linear-gradient(120deg, #0F2D59 0%, #164E87 55%, #1D5FA7 100%);
+  border-radius: 16px;
+  padding: 26px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  overflow: hidden;
+  position: relative;
+  min-height: 120px;
+  box-shadow: 0 4px 18px rgba(15,45,89,0.2);
+}
+.coord-hero::before {
+  content: '';
+  position: absolute;
+  right: -30px; top: -30px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+.coord-hero-text h2 {
+  font-size: 23px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px;
+}
+.coord-hero-text p {
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.coord-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.coord-hero-pill {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 12px;
+  padding: 12px 18px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+}
+.coord-hero-pill .pill-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #38BDF8;
+  line-height: 1;
+}
+.coord-hero-pill .pill-lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* ── KPIs ────────────────────────────────────────────────────── */
+.coord-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) {
+  .coord-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .coord-kpis { grid-template-columns: 1fr; }
+}
+.coord-kpi {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.coord-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.08);
+}
+.coord-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-amber { background: #FEF3C7; color: #D97706; }
+.icon-green { background: #DCFCE7; color: #16A34A; }
+.icon-blue  { background: #EFF6FF; color: #2563EB; }
+.icon-purple{ background: #F3E8FF; color: #9333EA; }
+
+.coord-kpi-val { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1.1; }
+.coord-kpi-lbl { font-size: 12px; font-weight: 600; color: #334155; margin-top: 2px; }
+.coord-kpi-sub { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+
+/* ── Actions Bar ─────────────────────────────────────────────── */
+.coord-actions-bar {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* ── Card & Queues ───────────────────────────────────────────── */
+.coord-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.coord-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.coord-card-title h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coord-card-title p { font-size: 12px; color: #64748B; margin: 0; }
+
+.coord-item {
+  border: 1px solid #E2E8F0;
+  border-left: 4px solid #2563EB;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  transition: box-shadow 0.15s;
+}
+.coord-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+@media (max-width: 720px) { .coord-item { grid-template-columns: 1fr; } }
+
+.coord-item-title { font-size: 15px; font-weight: 700; color: #0F172A; margin: 0 0 6px; }
+.coord-item-details { display: flex; align-items: center; gap: 14px; font-size: 12px; color: #475569; flex-wrap: wrap; }
+
+/* ── Modal ───────────────────────────────────────────────────── */
+.coord-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+.coord-modal-overlay.active { display: flex; }
+.coord-modal-card {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.coord-modal-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.coord-modal-body { padding: 20px; }
+.coord-modal-foot {
+  padding: 14px 20px;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── Hero Banner ─────────────────────────────────────────── -->
+<div class="coord-hero">
+  <div class="coord-hero-text">
+    <h2>
+      {% now "H" as current_hour %}
+      {% if current_hour < "12" %}Good Morning,
+      {% elif current_hour < "17" %}Good Afternoon,
+      {% else %}Good Evening,
+      {% endif %}
+      {{ request.user.get_full_name|default:request.user.username }}
+    </h2>
+    <p>
+      <span>Seminar Hall Central Coordinator · Campus Facility Allocation</span>
+      <span class="coord-hero-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ today_date|date:"l, d F Y" }}
+      </span>
+    </p>
+  </div>
+  <div class="coord-hero-pill">
+    <div class="pill-val">{{ pending_count }}</div>
+    <div class="pill-lbl">Awaiting Hall Allocation</div>
+  </div>
+</div>
+
+<!-- ── 4 KPIs ─────────────────────────────────────────────────── -->
+<div class="coord-kpis">
+  <div class="coord-kpi">
+    <div class="coord-kpi-icon icon-amber">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+      </svg>
+    </div>
+    <div>
+      <div class="coord-kpi-val">{{ pending_count }}</div>
+      <div class="coord-kpi-lbl">Awaiting Allocation</div>
+      <div class="coord-kpi-sub">HOD-approved requests</div>
+    </div>
+  </div>
+
+  <div class="coord-kpi">
+    <div class="coord-kpi-icon icon-green">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <div>
+      <div class="coord-kpi-val">{{ halls_available }}</div>
+      <div class="coord-kpi-lbl">Halls Available Today</div>
+      <div class="coord-kpi-sub">Out of {{ total_halls }} halls</div>
+    </div>
+  </div>
+
+  <div class="coord-kpi">
+    <div class="coord-kpi-icon icon-blue">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+    </div>
+    <div>
+      <div class="coord-kpi-val">{{ total_halls }}</div>
+      <div class="coord-kpi-lbl">Total Seminar Halls</div>
+      <div class="coord-kpi-sub">Managed on campus</div>
+    </div>
+  </div>
+
+  <div class="coord-kpi">
+    <div class="coord-kpi-icon icon-purple">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+    </div>
+    <div>
+      <div class="coord-kpi-val">{{ approved_month }}</div>
+      <div class="coord-kpi-lbl">Approved (This Month)</div>
+      <div class="coord-kpi-sub">Campus events confirmed</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Actions Bar ───────────────────────────────────────────── -->
+<div class="coord-actions-bar">
+  <div style="font-size:13px; font-weight:700; color:#0F172A; display:flex; align-items:center; gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span>Coordinator Tools</span>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <a href="{% url 'halls:list' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/></svg>
+      Hall Master
+    </a>
+    <a href="{% url 'bookings:calendar' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/></svg>
+      Master Calendar
+    </a>
+    <a href="{% url 'bookings:hall_availability' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/></svg>
+      Availability Grid
+    </a>
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+  </div>
+</div>
+
+<!-- ── Main Grid ─────────────────────────────────────────────── -->
+<div class="coord-wrap">
+
+  <div class="coord-main-col">
+
+    <!-- Coordinator Action Queue -->
+    <div class="coord-card">
+      <div class="coord-card-header">
+        <div class="coord-card-title">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            Pending Hall Allocation Queue
+            {% if pending_coord %}
+            <span class="badge badge-warning">{{ pending_coord|length }} requests</span>
+            {% endif %}
+          </h3>
+          <p>Bookings verified by HOD awaiting hall allocation & confirmation</p>
+        </div>
+        <a href="{% url 'approvals:pending_list' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">All Pending →</a>
+      </div>
+
+      <div style="padding:16px;">
+        {% if pending_coord %}
+          {% for b in pending_coord %}
+          <div class="coord-item">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
+                <span style="font-family:monospace; font-weight:700; color:#2563EB; background:#EFF6FF; padding:2px 7px; border-radius:5px; font-size:11.5px;">#{{ b.booking_id }}</span>
+                <span class="badge badge-neutral">{{ b.department.code }}</span>
+                <span style="font-size:11px; font-weight:600; color:#166534; background:#DCFCE7; padding:2px 7px; border-radius:4px;">✓ HOD Approved</span>
+              </div>
+              <h4 class="coord-item-title">{{ b.event_name }}</h4>
+              <div class="coord-item-details">
+                <div>📅 <strong>{{ b.event_date|date:"D, d M Y" }}</strong></div>
+                <div>⏰ <span>{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</span></div>
+                <div>🏛️ Pref: <strong>{{ b.preferred_hall.name }}</strong> (Cap: {{ b.preferred_hall.capacity }})</div>
+                <div>👥 {{ b.expected_participants }} pax</div>
+                <div>👤 {{ b.user.get_full_name|default:b.user.username }}</div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-sm btn-success" onclick="openCoordModal('{{ b.booking_id }}', '{{ b.event_name|escapejs }}', '{{ b.get_active_hall.id }}', '{{ b.preferred_hall.name|escapejs }}')">
+                Allocate & Approve →
+              </button>
+              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">
+                Details
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:40px; text-align:center; color:#64748B;">
+            <div style="font-size:15px; font-weight:700; color:#0F172A; margin-bottom:4px;">No Pending Hall Allocations</div>
+            <div style="font-size:12px;">All HOD-approved requests have been processed!</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Campus Halls Overview Table -->
+    <div class="coord-card">
+      <div class="coord-card-header">
+        <div class="coord-card-title">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/></svg>
+            Seminar Halls Live Status
+          </h3>
+          <p>Real-time status of all campus auditoriums & halls</p>
+        </div>
+        <a href="{% url 'halls:list' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">Manage Halls →</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Hall Name</th>
+              <th>Building / Floor</th>
+              <th>Capacity</th>
+              <th>Current Status</th>
+              <th>Next Event Today</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in hall_status_list %}
+            <tr>
+              <td>
+                <strong style="color:#0F172A;">{{ item.hall.name }}</strong>
+                <div style="font-size:11px; color:#64748B;">Code: {{ item.hall.code|default:"—" }}</div>
+              </td>
+              <td style="font-size:12px;">{{ item.hall.building }}, {{ item.hall.floor }}</td>
+              <td style="font-size:12px;"><strong>{{ item.hall.capacity }}</strong> seats</td>
+              <td>
+                {% if item.is_maintenance %}
+                  <span class="badge badge-warning">Maintenance</span>
+                {% elif item.is_busy %}
+                  <span class="badge badge-danger">In Use Now</span>
+                  <div style="font-size:11px; color:#64748B; margin-top:2px;">{{ item.current_event.event_name|truncatechars:20 }}</div>
+                {% else %}
+                  <span class="badge badge-success">Available</span>
+                {% endif %}
+              </td>
+              <td style="font-size:12px;">
+                {% if item.upcoming_today %}
+                  <div style="font-weight:600;">{{ item.upcoming_today.event_name|truncatechars:25 }}</div>
+                  <div style="font-size:11px; color:#1D5FA7;">{{ item.upcoming_today.start_time|time:"g:i A" }} – {{ item.upcoming_today.end_time|time:"g:i A" }}</div>
+                {% else %}
+                  <span style="color:#94A3B8; font-size:11.5px;">No other events today</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'halls:detail' item.hall.id %}" class="btn btn-sm btn-outline" style="font-size:11px; padding:3px 8px;">View</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT: Today's Schedule & Quick Stats ──────────────────── -->
+  <div class="coord-sidebar-panel" style="display:flex; flex-direction:column; gap:18px;">
+
+    <!-- ── Institutional Identity / User Profile Card ──────── -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.03);" id="user-identity-card">
+      <div style="padding:13px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0; display:flex; align-items:center; gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2.2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Account Profile
+        </h4>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+          <span class="badge" style="background:#F0FDF4; color:#166534; border:1px solid #BBF7D0; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:5px;">
+            <span style="display:inline-grid; grid-template-columns:1fr 1fr; gap:1.5px; width:9px; height:9px;">
+              <span style="background:#F25022;"></span><span style="background:#7FBA00;"></span>
+              <span style="background:#00A4EF;"></span><span style="background:#FFB900;"></span>
+            </span>
+            Microsoft
+          </span>
+        {% else %}
+          <span class="badge" style="background:#F1F5F9; color:#475569; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:12px;">
+            Local
+          </span>
+        {% endif %}
+      </div>
+      <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Name</div>
+          <div style="font-size:13px; font-weight:700; color:#0F172A; margin-top:2px;" id="profile-name">
+            {{ user.get_full_name|default:user.username|default:"Name not available" }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Email</div>
+          <div style="font-size:12px; color:#334155; margin-top:2px; word-break:break-all;" id="profile-email">
+            {{ user.email|default:"Email not available" }}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-top:4px; border-top:1px dashed #F1F5F9;">
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Department</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-department">
+              {% if user_profile and user_profile.department %}
+                {{ user_profile.department.name }}
+              {% else %}
+                Department not assigned
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Role</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-role">
+              {% if user_profile %}
+                {{ user_profile.role }}
+              {% else %}
+                COORDINATOR
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+        <div style="margin-top:2px; padding:7px 10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; font-size:11px; color:#475569; display:flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span style="font-weight:600;">Signed in with Microsoft</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Today's Schedule -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0;">Today's Schedule</h4>
+        <a href="{% url 'bookings:calendar' %}" style="font-size:11.5px; color:#1D5FA7; font-weight:600;">Calendar</a>
+      </div>
+      <div style="padding:10px 14px; display:flex; flex-direction:column; gap:10px;">
+        {% for slot in todays_schedule_panel %}
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-radius:8px; background:#F8FAFC; border:1px solid #EDF2F7;">
+          <div style="font-size:10.5px; font-weight:700; color:#1D5FA7; white-space:pre-line; min-width:65px;">{{ slot.time_label }}</div>
+          <div style="flex:1; min-width:0;">
+            {% if slot.booking %}
+              <div style="font-size:12px; font-weight:600; color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ slot.booking.event_name }}</div>
+              <div style="font-size:11px; color:#64748B;">{{ slot.booking.get_active_hall.name }} · {{ slot.booking.department.code }}</div>
+            {% else %}
+              <div style="font-size:11.5px; color:#94A3B8; font-style:italic;">No Booking Scheduled</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Quick Hall Availability Grid -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0;">Hall Availability</h4>
+        <a href="{% url 'bookings:hall_availability' %}" style="font-size:11.5px; color:#1D5FA7; font-weight:600;">Grid</a>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px;">
+        {% for item in hall_avail_mini %}
+        <div style="border:1px solid #E2E8F0; border-radius:8px; padding:10px; background:#FAFAFA;">
+          <div style="font-size:11.5px; font-weight:700; color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ item.hall.name }}</div>
+          <div style="font-size:10px; color:#64748B;">Cap: {{ item.hall.capacity }}</div>
+          {% if item.is_maintenance %}
+            <span style="font-size:10px; font-weight:600; color:#B45309; background:#FEF3C7; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Maint.</span>
+          {% elif item.is_busy %}
+            <span style="font-size:10px; font-weight:600; color:#B91C1C; background:#FEE2E2; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Busy</span>
+          {% else %}
+            <span style="font-size:10px; font-weight:600; color:#15803D; background:#DCFCE7; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Available</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /right -->
+
+</div><!-- /coord-wrap -->
+
+<!-- ── Coordinator Allocate & Approve Modal ─────────────────── -->
+<div id="coordModal" class="coord-modal-overlay">
+  <div class="coord-modal-card">
+    <div class="coord-modal-head">
+      <h4 style="font-size:16px; font-weight:700; color:#0F172A; margin:0;">Allocate Hall & Confirm</h4>
+      <button type="button" style="background:none; border:none; font-size:20px; color:#94A3B8; cursor:pointer;" onclick="closeCoordModal()">&times;</button>
+    </div>
+    <form id="coordForm" method="POST" action="">
+      {% csrf_token %}
+      <div class="coord-modal-body">
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:13px; font-weight:700; color:#1E40AF;" id="coordModalEventTitle">Event Title</div>
+          <div style="font-size:11.5px; color:#2563EB; margin-top:2px;">Preferred Hall: <strong id="coordModalPrefHall"></strong></div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label" for="allocatedHallSelect">Confirm / Reassign Hall</label>
+          <select class="form-control" id="allocatedHallSelect" name="allocated_hall_id" required>
+            {% for item in hall_status_list %}
+            <option value="{{ item.hall.id }}">
+              {{ item.hall.name }} (Capacity: {{ item.hall.capacity }}) {% if item.is_busy %}— [Busy Today]{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <span class="form-help">You can reassign to another hall if there is a clash or capacity mismatch.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="coordRemarks">Coordinator Remarks (Optional)</label>
+          <textarea class="form-control" id="coordRemarks" name="remarks" rows="2" placeholder="e.g. Hall allocated with audio/visual setup."></textarea>
+        </div>
+      </div>
+      <div class="coord-modal-foot">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeCoordModal()">Cancel</button>
+        <button type="submit" name="action" value="REJECT" class="btn btn-danger btn-sm">Reject Request</button>
+        <button type="submit" name="action" value="APPROVE" class="btn btn-success btn-sm">Allocate & Approve →</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openCoordModal(bookingId, eventTitle, hallId, prefHallName) {
+  const form = document.getElementById('coordForm');
+  form.action = '/approvals/' + bookingId + '/action/';
+  document.getElementById('coordModalEventTitle').textContent = eventTitle;
+  document.getElementById('coordModalPrefHall').textContent = prefHallName;
+  if (hallId) {
+    document.getElementById('allocatedHallSelect').value = hallId;
+  }
+  document.getElementById('coordModal').classList.add('active');
+}
+
+function closeCoordModal() {
+  document.getElementById('coordModal').classList.remove('active');
+}
+
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeCoordModal();
+});
+window.addEventListener('click', function(e) {
+  if (e.target.id === 'coordModal') closeCoordModal();
+});
+</script>
+{% endblock %}

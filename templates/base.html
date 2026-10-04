@@ -169,6 +169,7 @@
         <!-- REPORTS & SYSTEM (visible based on role) -->
         <span class="nav-section-title">System</span>
 
+        {% if user_profile and user_profile.is_admin_user or user_profile and user_profile.is_coordinator %}
         <a href="{% url 'reports:dashboard' %}" class="nav-item {% if request.resolver_match.app_name == 'reports' %}active{% endif %}">
           <span class="nav-item-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -179,6 +180,7 @@
           </span>
           <span class="nav-item-text">Reports</span>
         </a>
+        {% endif %}
 
         <a href="{% url 'notifications:list' %}" class="nav-item {% if request.resolver_match.app_name == 'notifications' %}active{% endif %}">
           <span class="nav-item-icon">

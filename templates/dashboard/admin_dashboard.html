@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}System Administrator Dashboard{% endblock %}
+{% block breadcrumb %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   Administrator Dashboard – Institutional Control & System Metrics
+   ════════════════════════════════════════════════════════════════ */
+
+.admin-wrap {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .admin-wrap { grid-template-columns: 1fr; }
+}
+
+.admin-hero {
+  background: linear-gradient(120deg, #0F172A 0%, #1E293B 55%, #334155 100%);
+  border-radius: 16px;
+  padding: 26px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  overflow: hidden;
+  position: relative;
+  min-height: 120px;
+  box-shadow: 0 4px 18px rgba(15,23,42,0.3);
+}
+.admin-hero::before {
+  content: '';
+  position: absolute;
+  right: -30px; top: -30px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+.admin-hero-text h2 {
+  font-size: 23px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px;
+}
+.admin-hero-text p {
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.admin-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.admin-hero-pill {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 12px;
+  padding: 12px 18px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+}
+.admin-hero-pill .pill-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #60A5FA;
+  line-height: 1;
+}
+.admin-hero-pill .pill-lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .admin-kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .admin-kpis { grid-template-columns: 1fr; } }
+
+.admin-kpi {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.admin-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-slate  { background: #F1F5F9; color: #475569; }
+.icon-amber  { background: #FEF3C7; color: #D97706; }
+.icon-green  { background: #DCFCE7; color: #16A34A; }
+.icon-blue   { background: #EFF6FF; color: #2563EB; }
+
+.admin-kpi-val { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1.1; }
+.admin-kpi-lbl { font-size: 12px; font-weight: 600; color: #334155; margin-top: 2px; }
+.admin-kpi-sub { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+
+.admin-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.admin-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.admin-card-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-quick-bar {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── Admin Hero Banner ───────────────────────────────────── -->
+<div class="admin-hero">
+  <div class="admin-hero-text">
+    <h2>
+      {% now "H" as current_hour %}
+      {% if current_hour < "12" %}Good Morning,
+      {% elif current_hour < "17" %}Good Afternoon,
+      {% else %}Good Evening,
+      {% endif %}
+      System Administrator
+    </h2>
+    <p>
+      <span>MCET Seminar Hall Enterprise Administration & Operations</span>
+      <span class="admin-hero-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Superuser Level
+      </span>
+      <span class="admin-hero-badge">{{ today_date|date:"l, d F Y" }}</span>
+    </p>
+  </div>
+  <div class="admin-hero-pill">
+    <div class="pill-val">{{ total_bookings }}</div>
+    <div class="pill-lbl">Total System Bookings</div>
+  </div>
+</div>
+
+<!-- ── KPIs ─────────────────────────────────────────────────── -->
+<div class="admin-kpis">
+  <div class="admin-kpi">
+    <div class="admin-kpi-icon icon-amber">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+    </div>
+    <div>
+      <div class="admin-kpi-val">{{ pending_all }}</div>
+      <div class="admin-kpi-lbl">Pending System Approvals</div>
+      <div class="admin-kpi-sub">Across all workflow stages</div>
+    </div>
+  </div>
+
+  <div class="admin-kpi">
+    <div class="admin-kpi-icon icon-green">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div>
+      <div class="admin-kpi-val">{{ approved_month }}</div>
+      <div class="admin-kpi-lbl">Approved (This Month)</div>
+      <div class="admin-kpi-sub">Active confirmed events</div>
+    </div>
+  </div>
+
+  <div class="admin-kpi">
+    <div class="admin-kpi-icon icon-blue">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/></svg>
+    </div>
+    <div>
+      <div class="admin-kpi-val">{{ available_halls_today }} / {{ total_halls }}</div>
+      <div class="admin-kpi-lbl">Halls Available Today</div>
+      <div class="admin-kpi-sub">Total active venues</div>
+    </div>
+  </div>
+
+  <div class="admin-kpi">
+    <div class="admin-kpi-icon icon-slate">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    </div>
+    <div>
+      <div class="admin-kpi-val">{{ rejected_month }}</div>
+      <div class="admin-kpi-lbl">Rejected / Cancelled</div>
+      <div class="admin-kpi-sub">This month</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quick Controls Bar ──────────────────────────────────── -->
+<div class="admin-quick-bar">
+  <div style="font-size:13px; font-weight:700; color:#0F172A; display:flex; align-items:center; gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span>System Administration</span>
+  </div>
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <a href="{% url 'accounts:user_management' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      User Management
+    </a>
+    <a href="{% url 'halls:list' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/></svg>
+      Halls Master
+    </a>
+    <a href="{% url 'departments:list' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Departments
+    </a>
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </a>
+    <a href="{% url 'audit:list' %}" class="btn btn-sm btn-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Audit Logs
+    </a>
+  </div>
+</div>
+
+<div class="admin-wrap">
+
+  <div class="admin-main-col">
+
+    <!-- Recent Bookings across all Depts -->
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          System-Wide Recent Bookings
+        </h3>
+        <a href="{% url 'approvals:pending_list' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">Pending Approvals ({{ pending_all }}) →</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Event Title</th>
+              <th>Organizer</th>
+              <th>Dept</th>
+              <th>Hall</th>
+              <th>Date & Time</th>
+              <th>Stage / Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in recent_bookings %}
+            <tr>
+              <td style="font-family:monospace; font-weight:700; color:#2563EB;">{{ b.booking_id }}</td>
+              <td>
+                <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#0F172A; text-decoration:none;">{{ b.event_name }}</a>
+                <div style="font-size:11px; color:#64748B;">{{ b.event_type }}</div>
+              </td>
+              <td style="font-size:12px;">{{ b.user.get_full_name|default:b.user.username }}</td>
+              <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
+              <td style="font-size:12px;"><strong>{{ b.get_active_hall.name }}</strong></td>
+              <td style="white-space:nowrap; font-size:12px;">
+                <div><strong>{{ b.event_date|date:"D, d M" }}</strong></div>
+                <div style="font-size:11px; color:#1D5FA7;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</div>
+              </td>
+              <td>
+                {% if b.status == 'APPROVED' %}
+                  <span class="badge badge-success">Approved</span>
+                {% elif b.status == 'SUBMITTED' %}
+                  <span class="badge badge-warning">At HOD Stage</span>
+                {% elif b.status == 'HOD_APPROVED' %}
+                  <span class="badge badge-info">At Coord Stage</span>
+                {% elif b.status == 'COORDINATOR_APPROVED' %}
+                  <span class="badge badge-info">At Principal Stage</span>
+                {% elif b.status == 'REJECTED' %}
+                  <span class="badge badge-danger">Rejected</span>
+                {% else %}
+                  <span class="badge badge-neutral">{{ b.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline" style="font-size:11px; padding:3px 8px;">View</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center; padding:24px; color:#94A3B8;">No bookings registered in system.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT: Today's Schedule & Hall Availability ────────────── -->
+  <div style="display:flex; flex-direction:column; gap:18px;">
+
+    <!-- ── Institutional Identity / User Profile Card ──────── -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.03);" id="user-identity-card">
+      <div style="padding:13px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0; display:flex; align-items:center; gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2.2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Account Profile
+        </h4>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+          <span class="badge" style="background:#F0FDF4; color:#166534; border:1px solid #BBF7D0; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:5px;">
+            <span style="display:inline-grid; grid-template-columns:1fr 1fr; gap:1.5px; width:9px; height:9px;">
+              <span style="background:#F25022;"></span><span style="background:#7FBA00;"></span>
+              <span style="background:#00A4EF;"></span><span style="background:#FFB900;"></span>
+            </span>
+            Microsoft
+          </span>
+        {% else %}
+          <span class="badge" style="background:#F1F5F9; color:#475569; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:12px;">
+            Local
+          </span>
+        {% endif %}
+      </div>
+      <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Name</div>
+          <div style="font-size:13px; font-weight:700; color:#0F172A; margin-top:2px;" id="profile-name">
+            {{ user.get_full_name|default:user.username|default:"Name not available" }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Email</div>
+          <div style="font-size:12px; color:#334155; margin-top:2px; word-break:break-all;" id="profile-email">
+            {{ user.email|default:"Email not available" }}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-top:4px; border-top:1px dashed #F1F5F9;">
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Department</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-department">
+              {% if user_profile and user_profile.department %}
+                {{ user_profile.department.name }}
+              {% else %}
+                Department not assigned
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Role</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-role">
+              {% if user_profile %}
+                {{ user_profile.role }}
+              {% else %}
+                ADMIN
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+        <div style="margin-top:2px; padding:7px 10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; font-size:11px; color:#475569; display:flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span style="font-weight:600;">Signed in with Microsoft</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Today's Live Schedule -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0;">Live Hall Schedule</h4>
+        <a href="{% url 'bookings:calendar' %}" style="font-size:11.5px; color:#1D5FA7; font-weight:600;">Calendar</a>
+      </div>
+      <div style="padding:10px 14px; display:flex; flex-direction:column; gap:10px;">
+        {% for slot in todays_schedule_panel %}
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-radius:8px; background:#F8FAFC; border:1px solid #EDF2F7;">
+          <div style="font-size:10.5px; font-weight:700; color:#1D5FA7; white-space:pre-line; min-width:65px;">{{ slot.time_label }}</div>
+          <div style="flex:1; min-width:0;">
+            {% if slot.booking %}
+              <div style="font-size:12px; font-weight:600; color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ slot.booking.event_name }}</div>
+              <div style="font-size:11px; color:#64748B;">{{ slot.booking.get_active_hall.name }} · {{ slot.booking.department.code }}</div>
+            {% else %}
+              <div style="font-size:11.5px; color:#94A3B8; font-style:italic;">No Booking Scheduled</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Hall Availability Mini Grid -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0;">Halls Quick Status</h4>
+        <a href="{% url 'bookings:hall_availability' %}" style="font-size:11.5px; color:#1D5FA7; font-weight:600;">Full Grid</a>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px;">
+        {% for item in hall_avail_mini %}
+        <div style="border:1px solid #E2E8F0; border-radius:8px; padding:10px; background:#FAFAFA;">
+          <div style="font-size:11.5px; font-weight:700; color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ item.hall.name }}</div>
+          <div style="font-size:10px; color:#64748B;">Cap: {{ item.hall.capacity }}</div>
+          {% if item.is_maintenance %}
+            <span style="font-size:10px; font-weight:600; color:#B45309; background:#FEF3C7; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Maint.</span>
+          {% elif item.is_busy %}
+            <span style="font-size:10px; font-weight:600; color:#B91C1C; background:#FEE2E2; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Busy</span>
+          {% else %}
+            <span style="font-size:10px; font-weight:600; color:#15803D; background:#DCFCE7; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Available</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /right -->
+
+</div>
+{% endblock %}

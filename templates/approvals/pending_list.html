@@ -101,9 +101,9 @@
   <div class="pagination-wrapper">
     <div class="pagination-info">Showing {{ page_obj.start_index }} – {{ page_obj.end_index }} of {{ page_obj.paginator.count }}</div>
     <div class="pagination-links">
-      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&stage={{ stage_filter }}&department={{ dept_id }}&search={{ search }}" class="page-btn">← Prev</a>{% endif %}
+      {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&stage={{ stage_filter|default:'' }}&department={{ dept_id|default:'' }}&search={{ search|default:'' }}" class="page-btn">← Prev</a>{% endif %}
       <span class="page-btn active">{{ page_obj.number }}</span>
-      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&stage={{ stage_filter }}&department={{ dept_id }}&search={{ search }}" class="page-btn">Next →</a>{% endif %}
+      {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&stage={{ stage_filter|default:'' }}&department={{ dept_id|default:'' }}&search={{ search|default:'' }}" class="page-btn">Next →</a>{% endif %}
     </div>
   </div>
   {% endif %}

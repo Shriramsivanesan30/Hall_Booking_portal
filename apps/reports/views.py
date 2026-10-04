@@ -11,12 +11,22 @@ from apps.bookings.models import Booking
 from apps.halls.models import Hall
 from apps.departments.models import Department
 
+def _clean_id(val):
+    if val and str(val).strip().isdigit():
+        return int(val)
+    return None
+
+def _clean_str(val):
+    if val and str(val).strip() not in ('', 'None', 'undefined'):
+        return str(val).strip()
+    return None
+
 @login_required
 def reports_dashboard_view(request):
-    dept_id = request.GET.get('department')
-    hall_id = request.GET.get('hall')
-    status_filter = request.GET.get('status')
-    event_type = request.GET.get('event_type')
+    dept_id = _clean_id(request.GET.get('department'))
+    hall_id = _clean_id(request.GET.get('hall'))
+    status_filter = _clean_str(request.GET.get('status'))
+    event_type = _clean_str(request.GET.get('event_type'))
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
 
@@ -82,10 +92,10 @@ def reports_dashboard_view(request):
         'status_choices': Booking.STATUS_CHOICES,
         'start_date': start_date.strftime('%Y-%m-%d'),
         'end_date': end_date.strftime('%Y-%m-%d'),
-        'dept_id': dept_id,
-        'hall_id': hall_id,
-        'status_filter': status_filter,
-        'event_type': event_type,
+        'dept_id': str(dept_id) if dept_id else '',
+        'hall_id': str(hall_id) if hall_id else '',
+        'status_filter': status_filter or '',
+        'event_type': event_type or '',
     })
 
 @login_required
@@ -93,9 +103,9 @@ def export_excel_report(request):
     """
     Exports filtered bookings report to Microsoft Excel format (.xlsx) using openpyxl.
     """
-    dept_id = request.GET.get('department')
-    hall_id = request.GET.get('hall')
-    status_filter = request.GET.get('status')
+    dept_id = _clean_id(request.GET.get('department'))
+    hall_id = _clean_id(request.GET.get('hall'))
+    status_filter = _clean_str(request.GET.get('status'))
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
 

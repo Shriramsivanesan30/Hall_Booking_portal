@@ -54,7 +54,7 @@ Please log in to the MCET Seminar Hall Booking Portal to view the complete detai
 Regards,
 MCET College ERP
 Dr. Mahalingam College of Engineering and Technology
-https://booking.dexoshpuse.com
+https://bookings.dexoshouse.com
 """
 
     if target_user.email:

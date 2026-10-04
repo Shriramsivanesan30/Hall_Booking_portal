@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Principal Dashboard{% endblock %}
+{% block breadcrumb %}Principal Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   Principal Dashboard – Executive Authorization & Campus Events
+   ════════════════════════════════════════════════════════════════ */
+
+.princ-wrap {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .princ-wrap { grid-template-columns: 1fr; }
+}
+
+.princ-hero {
+  background: linear-gradient(120deg, #1E1B4B 0%, #312E81 55%, #4338CA 100%);
+  border-radius: 16px;
+  padding: 26px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  overflow: hidden;
+  position: relative;
+  min-height: 120px;
+  box-shadow: 0 4px 18px rgba(30,27,75,0.25);
+}
+.princ-hero::before {
+  content: '';
+  position: absolute;
+  right: -30px; top: -30px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+.princ-hero-text h2 {
+  font-size: 23px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px;
+}
+.princ-hero-text p {
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.princ-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+.princ-hero-pill {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 12px;
+  padding: 12px 18px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+}
+.princ-hero-pill .pill-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #A5B4FC;
+  line-height: 1;
+}
+.princ-hero-pill .pill-lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.princ-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) { .princ-kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .princ-kpis { grid-template-columns: 1fr; } }
+
+.princ-kpi {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.princ-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-indigo { background: #EEF2FF; color: #4F46E5; }
+.icon-emerald{ background: #ECFDF5; color: #059669; }
+.icon-amber  { background: #FEF3C7; color: #D97706; }
+.icon-blue   { background: #EFF6FF; color: #2563EB; }
+
+.princ-kpi-val { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1.1; }
+.princ-kpi-lbl { font-size: 12px; font-weight: 600; color: #334155; margin-top: 2px; }
+.princ-kpi-sub { font-size: 11px; color: #94A3B8; margin-top: 1px; }
+
+.princ-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.princ-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.princ-card-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="princ-hero">
+  <div class="princ-hero-text">
+    <h2>
+      {% now "H" as current_hour %}
+      {% if current_hour < "12" %}Good Morning,
+      {% elif current_hour < "17" %}Good Afternoon,
+      {% else %}Good Evening,
+      {% endif %}
+      Principal {{ request.user.get_full_name|default:request.user.username }}
+    </h2>
+    <p>
+      <span>Executive Administration & Institutional Sign-off Portal</span>
+      <span class="princ-hero-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Institutional Authority
+      </span>
+      <span class="princ-hero-badge">
+        {{ today_date|date:"l, d F Y" }}
+      </span>
+    </p>
+  </div>
+  <div class="princ-hero-pill">
+    <div class="pill-val">{{ pending_count }}</div>
+    <div class="pill-lbl">Awaiting Final Authorization</div>
+  </div>
+</div>
+
+<div class="princ-kpis">
+  <div class="princ-kpi">
+    <div class="princ-kpi-icon icon-amber">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+    </div>
+    <div>
+      <div class="princ-kpi-val">{{ pending_count }}</div>
+      <div class="princ-kpi-lbl">Pending Final Sign-off</div>
+      <div class="princ-kpi-sub">Ready for decision</div>
+    </div>
+  </div>
+
+  <div class="princ-kpi">
+    <div class="princ-kpi-icon icon-emerald">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div>
+      <div class="princ-kpi-val">{{ approved_month }}</div>
+      <div class="princ-kpi-lbl">Approved Events (Month)</div>
+      <div class="princ-kpi-sub">College-wide confirmed</div>
+    </div>
+  </div>
+
+  <div class="princ-kpi">
+    <div class="princ-kpi-icon icon-blue">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div>
+      <div class="princ-kpi-val">{{ upcoming_approved|length }}</div>
+      <div class="princ-kpi-lbl">Upcoming Campus Events</div>
+      <div class="princ-kpi-sub">Across all venues</div>
+    </div>
+  </div>
+
+  <div class="princ-kpi">
+    <div class="princ-kpi-icon icon-indigo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/></svg>
+    </div>
+    <div>
+      <div class="princ-kpi-val">All Halls</div>
+      <div class="princ-kpi-lbl">Auditoriums & Halls</div>
+      <div class="princ-kpi-sub">Campus facilities</div>
+    </div>
+  </div>
+</div>
+
+<div class="princ-wrap">
+
+  <div class="princ-main-col">
+
+    <!-- Final Approval Queue -->
+    <div class="princ-card">
+      <div class="princ-card-header">
+        <h3>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Principal Sign-off Queue
+          {% if pending_principal %}
+          <span class="badge badge-warning">{{ pending_principal|length }}</span>
+          {% endif %}
+        </h3>
+        <a href="{% url 'approvals:pending_list' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">All Pending →</a>
+      </div>
+
+      <div style="padding:16px;">
+        {% if pending_principal %}
+          {% for b in pending_principal %}
+          <div style="border:1px solid #E2E8F0; border-left:4px solid #4F46E5; border-radius:10px; padding:16px; margin-bottom:12px; background:#fff; display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <span style="font-family:monospace; font-weight:700; color:#4F46E5; background:#EEF2FF; padding:2px 7px; border-radius:5px; font-size:11.5px;">#{{ b.booking_id }}</span>
+                <span class="badge badge-neutral">{{ b.department.code }}</span>
+                <span style="font-size:11px; font-weight:600; color:#15803D; background:#DCFCE7; padding:2px 7px; border-radius:4px;">✓ HOD & Coordinator Verified</span>
+              </div>
+              <h4 style="font-size:15px; font-weight:700; color:#0F172A; margin:0 0 6px;">{{ b.event_name }}</h4>
+              <div style="display:flex; align-items:center; gap:14px; font-size:12px; color:#475569; flex-wrap:wrap;">
+                <div>📅 <strong>{{ b.event_date|date:"D, d M Y" }}</strong></div>
+                <div>⏰ {{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</div>
+                <div>🏛️ Allocated: <strong>{{ b.get_active_hall.name }}</strong></div>
+                <div>👥 {{ b.expected_participants }} participants</div>
+                <div>👤 {{ b.user.get_full_name|default:b.user.username }}</div>
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:8px;">
+              <form method="POST" action="{% url 'approvals:action' b.booking_id %}">
+                {% csrf_token %}
+                <button type="submit" name="action" value="APPROVE" class="btn btn-sm btn-success">
+                  Approve (Final) ✓
+                </button>
+              </form>
+              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline">
+                Review →
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="padding:40px; text-align:center; color:#64748B;">
+            <div style="font-size:15px; font-weight:700; color:#0F172A; margin-bottom:4px;">No Pending Authorizations</div>
+            <div style="font-size:12px;">All booking requests requiring Principal approval have been reviewed.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- College-wide Upcoming Events -->
+    <div class="princ-card">
+      <div class="princ-card-header">
+        <h3>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/></svg>
+          Upcoming Campus Events
+        </h3>
+        <a href="{% url 'bookings:calendar' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">Master Calendar →</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Event Title</th>
+              <th>Department</th>
+              <th>Hall</th>
+              <th>Organizer</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in upcoming_approved %}
+            <tr>
+              <td style="white-space:nowrap; font-size:12px;">
+                <strong>{{ b.event_date|date:"D, d M" }}</strong>
+                <div style="font-size:11px; color:#1D5FA7;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</div>
+              </td>
+              <td>
+                <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#0F172A; text-decoration:none;">{{ b.event_name }}</a>
+                <div style="font-size:11px; color:#64748B;">{{ b.event_type }} · {{ b.expected_participants }} pax</div>
+              </td>
+              <td><span class="badge badge-neutral">{{ b.department.code }}</span></td>
+              <td><strong>{{ b.get_active_hall.name }}</strong></td>
+              <td style="font-size:12px;">{{ b.user.get_full_name|default:b.user.username }}</td>
+              <td>
+                <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline" style="font-size:11px; padding:3px 8px;">View</a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center; padding:24px; color:#94A3B8;">No upcoming confirmed events.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT: Today's Schedule & Quick Stats ──────────────────── -->
+  <div style="display:flex; flex-direction:column; gap:18px;">
+
+    <!-- ── Institutional Identity / User Profile Card ──────── -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.03);" id="user-identity-card">
+      <div style="padding:13px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0; display:flex; align-items:center; gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2.2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Account Profile
+        </h4>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+          <span class="badge" style="background:#F0FDF4; color:#166534; border:1px solid #BBF7D0; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:5px;">
+            <span style="display:inline-grid; grid-template-columns:1fr 1fr; gap:1.5px; width:9px; height:9px;">
+              <span style="background:#F25022;"></span><span style="background:#7FBA00;"></span>
+              <span style="background:#00A4EF;"></span><span style="background:#FFB900;"></span>
+            </span>
+            Microsoft
+          </span>
+        {% else %}
+          <span class="badge" style="background:#F1F5F9; color:#475569; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:12px;">
+            Local
+          </span>
+        {% endif %}
+      </div>
+      <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Name</div>
+          <div style="font-size:13px; font-weight:700; color:#0F172A; margin-top:2px;" id="profile-name">
+            {{ user.get_full_name|default:user.username|default:"Name not available" }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Email</div>
+          <div style="font-size:12px; color:#334155; margin-top:2px; word-break:break-all;" id="profile-email">
+            {{ user.email|default:"Email not available" }}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-top:4px; border-top:1px dashed #F1F5F9;">
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Department</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-department">
+              {% if user_profile and user_profile.department %}
+                {{ user_profile.department.name }}
+              {% else %}
+                Department not assigned
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Role</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-role">
+              {% if user_profile %}
+                {{ user_profile.role }}
+              {% else %}
+                PRINCIPAL
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+        <div style="margin-top:2px; padding:7px 10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; font-size:11px; color:#475569; display:flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span style="font-weight:600;">Signed in with Microsoft</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Today's Schedule -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0;">Today's Campus Schedule</h4>
+        <a href="{% url 'bookings:calendar' %}" style="font-size:11.5px; color:#1D5FA7; font-weight:600;">Calendar</a>
+      </div>
+      <div style="padding:10px 14px; display:flex; flex-direction:column; gap:10px;">
+        {% for slot in todays_schedule_panel %}
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:8px 10px; border-radius:8px; background:#F8FAFC; border:1px solid #EDF2F7;">
+          <div style="font-size:10.5px; font-weight:700; color:#4F46E5; white-space:pre-line; min-width:65px;">{{ slot.time_label }}</div>
+          <div style="flex:1; min-width:0;">
+            {% if slot.booking %}
+              <div style="font-size:12px; font-weight:600; color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ slot.booking.event_name }}</div>
+              <div style="font-size:11px; color:#64748B;">{{ slot.booking.get_active_hall.name }} · {{ slot.booking.department.code }}</div>
+            {% else %}
+              <div style="font-size:11.5px; color:#94A3B8; font-style:italic;">No Booking Scheduled</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Quick Hall Availability Grid -->
+    <div style="background:#fff; border:1px solid #E2E8F0; border-radius:14px; overflow:hidden;">
+      <div style="padding:14px 16px; border-bottom:1px solid #F1F5F9; display:flex; justify-content:space-between; align-items:center;">
+        <h4 style="font-size:13px; font-weight:700; color:#0F172A; margin:0;">Hall Availability</h4>
+        <a href="{% url 'bookings:hall_availability' %}" style="font-size:11.5px; color:#1D5FA7; font-weight:600;">View All</a>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px;">
+        {% for item in hall_avail_mini %}
+        <div style="border:1px solid #E2E8F0; border-radius:8px; padding:10px; background:#FAFAFA;">
+          <div style="font-size:11.5px; font-weight:700; color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ item.hall.name }}</div>
+          <div style="font-size:10px; color:#64748B;">Cap: {{ item.hall.capacity }}</div>
+          {% if item.is_maintenance %}
+            <span style="font-size:10px; font-weight:600; color:#B45309; background:#FEF3C7; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Maint.</span>
+          {% elif item.is_busy %}
+            <span style="font-size:10px; font-weight:600; color:#B91C1C; background:#FEE2E2; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Busy</span>
+          {% else %}
+            <span style="font-size:10px; font-weight:600; color:#15803D; background:#DCFCE7; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:5px;">Available</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div><!-- /right -->
+
+</div>
+{% endblock %}

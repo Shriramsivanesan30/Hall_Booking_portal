@@ -19,7 +19,7 @@
       </svg>
       Print
     </button>
-    <a href="{% url 'reports:export_excel' %}?start_date={{ start_date }}&end_date={{ end_date }}&department={{ dept_id }}&hall={{ hall_id }}&status={{ status_filter }}" class="btn btn-primary btn-sm">
+    <a href="{% url 'reports:export_excel' %}?start_date={{ start_date }}&end_date={{ end_date }}{% if dept_id %}&department={{ dept_id }}{% endif %}{% if hall_id %}&hall={{ hall_id }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-primary btn-sm">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>

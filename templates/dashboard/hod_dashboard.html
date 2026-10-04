@@ -1,0 +1,1235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}HOD Dashboard{% endblock %}
+{% block breadcrumb %}HOD Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   HOD Dashboard – Specialized Department Approval & Management UI
+   ════════════════════════════════════════════════════════════════ */
+
+.hod-wrap {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .hod-wrap { grid-template-columns: 1fr; }
+}
+
+/* ── Hero Banner ─────────────────────────────────────────────── */
+.hod-hero {
+  background: linear-gradient(120deg, #123B72 0%, #1D5FA7 55%, #2570C2 100%);
+  border-radius: 16px;
+  padding: 26px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  overflow: hidden;
+  position: relative;
+  min-height: 120px;
+  box-shadow: 0 4px 18px rgba(18,59,114,0.18);
+}
+.hod-hero::before {
+  content: '';
+  position: absolute;
+  right: -30px; top: -30px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+.hod-hero::after {
+  content: '';
+  position: absolute;
+  right: 120px; bottom: -50px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  pointer-events: none;
+}
+.hod-hero-text h2 {
+  font-size: 23px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+.hod-hero-text p {
+  color: rgba(255,255,255,0.82);
+  font-size: 13px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.hod-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+.hod-hero-pill {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 12px;
+  padding: 12px 18px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+.hod-hero-pill .pill-val {
+  font-size: 26px;
+  font-weight: 800;
+  color: #FFDE59;
+  line-height: 1;
+}
+.hod-hero-pill .pill-lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+/* ── KPI Cards ───────────────────────────────────────────────── */
+.hod-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 900px) {
+  .hod-kpis { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .hod-kpis { grid-template-columns: 1fr; }
+}
+.hod-kpi {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.hod-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 14px rgba(0,0,0,0.08);
+}
+.hod-kpi.highlight-warn {
+  border-color: #FED7AA;
+  background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%);
+}
+.hod-kpi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-amber { background: #FEF3C7; color: #D97706; }
+.icon-blue  { background: #EFF6FF; color: #2563EB; }
+.icon-green { background: #DCFCE7; color: #16A34A; }
+.icon-rose  { background: #FFE4E6; color: #E11D48; }
+
+.hod-kpi-info { flex: 1; min-width: 0; }
+.hod-kpi-val {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.1;
+}
+.hod-kpi-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hod-kpi-sub {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-top: 1px;
+}
+
+/* ── Quick Actions ───────────────────────────────────────────── */
+.hod-actions-bar {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.hod-actions-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1E293B;
+}
+.hod-actions-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn-action-sm {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 13px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.btn-action-primary {
+  background: #1D5FA7;
+  color: #fff;
+}
+.btn-action-primary:hover {
+  background: #123B72;
+  color: #fff;
+}
+.btn-action-amber {
+  background: #D97706;
+  color: #fff;
+}
+.btn-action-amber:hover {
+  background: #B45309;
+  color: #fff;
+}
+.btn-action-outline {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+  color: #334155;
+}
+.btn-action-outline:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+/* ── Section Cards ───────────────────────────────────────────── */
+.hod-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.hod-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hod-card-title-group h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hod-card-title-group p {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+}
+.hod-badge-count {
+  background: #FEF3C7;
+  color: #B45309;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  border: 1px solid #FDE68A;
+}
+
+/* ── Filter Tabs ─────────────────────────────────────────────── */
+.hod-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px 0;
+  border-bottom: 1px solid #E2E8F0;
+  background: #FAFAFA;
+  overflow-x: auto;
+}
+.hod-tab {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hod-tab:hover { color: #1D5FA7; }
+.hod-tab.active {
+  color: #1D5FA7;
+  border-bottom-color: #1D5FA7;
+  background: #fff;
+  border-radius: 6px 6px 0 0;
+}
+.hod-tab-pill {
+  font-size: 10.5px;
+  background: #E2E8F0;
+  color: #475569;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.hod-tab.active .hod-tab-pill {
+  background: #EAF3FF;
+  color: #1D5FA7;
+}
+
+/* ── Pending Approvals List ──────────────────────────────────── */
+.hod-pending-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hod-pending-item {
+  border: 1px solid #E2E8F0;
+  border-left: 4px solid #D97706;
+  border-radius: 10px;
+  padding: 16px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.hod-pending-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border-color: #CBD5E1;
+  border-left-color: #D97706;
+}
+@media (max-width: 720px) {
+  .hod-pending-item {
+    grid-template-columns: 1fr;
+  }
+}
+.hod-pi-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.hod-pi-id {
+  font-family: monospace;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1D5FA7;
+  background: #EAF3FF;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+.hod-pi-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #F1F5F9;
+  color: #334155;
+}
+.hod-pi-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 6px;
+}
+.hod-pi-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: #475569;
+  flex-wrap: wrap;
+}
+.hod-pi-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.hod-pi-detail-item svg {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+.hod-pi-faculty {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #E2E8F0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #64748B;
+}
+.hod-pi-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1D5FA7;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hod-pi-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Approval Modal ──────────────────────────────────────────── */
+.hod-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+.hod-modal-overlay.active {
+  display: flex;
+}
+.hod-modal-card {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: modalPop 0.2s ease-out;
+}
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.hod-modal-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.hod-modal-head h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+.hod-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #94A3B8;
+  cursor: pointer;
+  line-height: 1;
+}
+.hod-modal-close:hover { color: #0F172A; }
+.hod-modal-body {
+  padding: 20px;
+}
+.hod-modal-foot {
+  padding: 14px 20px;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ── Right Panel: Schedule & Availability ────────────────────── */
+.hod-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.hod-side-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.hod-side-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.hod-side-head h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hod-side-link {
+  font-size: 11.5px;
+  color: #1D5FA7;
+  font-weight: 600;
+  text-decoration: none;
+}
+.hod-side-link:hover { text-decoration: underline; }
+
+.hod-sched-list {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hod-sched-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+}
+.hod-sched-time {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #1D5FA7;
+  white-space: pre-line;
+  line-height: 1.2;
+  min-width: 65px;
+  flex-shrink: 0;
+}
+.hod-sched-event {
+  flex: 1;
+  min-width: 0;
+}
+.hod-sched-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hod-sched-hall {
+  font-size: 11px;
+  color: #64748B;
+  margin-top: 1px;
+}
+.hod-sched-empty {
+  font-size: 11.5px;
+  color: #94A3B8;
+  font-style: italic;
+}
+
+/* ── Mini Hall Availability Grid ─────────────────────────────── */
+.hod-ha-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+.hod-ha-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px;
+  background: #FAFAFA;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.hod-ha-card:hover {
+  border-color: #1D5FA7;
+  background: #fff;
+}
+.hod-ha-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hod-ha-cap {
+  font-size: 10px;
+  color: #64748B;
+  margin-top: 2px;
+}
+.hod-ha-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.hod-ha-status.avail { background: #DCFCE7; color: #15803D; }
+.hod-ha-status.busy  { background: #FEE2E2; color: #B91C1C; }
+.hod-ha-status.maint { background: #FEF3C7; color: #B45309; }
+.hod-ha-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+}
+
+/* ── Empty State ─────────────────────────────────────────────── */
+.hod-empty {
+  padding: 40px 20px;
+  text-align: center;
+}
+.hod-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  color: #94A3B8;
+}
+.hod-empty-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0 0 4px;
+}
+.hod-empty-desc {
+  font-size: 12px;
+  color: #64748B;
+  margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── HOD Hero Banner ─────────────────────────────────────────── -->
+<div class="hod-hero">
+  <div class="hod-hero-text">
+    <h2>
+      {% now "H" as current_hour %}
+      {% if current_hour < "12" %}Good Morning,
+      {% elif current_hour < "17" %}Good Afternoon,
+      {% else %}Good Evening,
+      {% endif %}
+      {{ request.user.get_full_name|default:request.user.username }}
+    </h2>
+    <p>
+      <span>Head of Department — {{ dept.name|default:"Department of Engineering" }}</span>
+      <span class="hod-hero-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        HOD Authorization Level
+      </span>
+      <span class="hod-hero-badge">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        {{ today_date|date:"l, d F Y" }}
+      </span>
+    </p>
+  </div>
+  <div class="hod-hero-pill">
+    <div class="pill-val">{{ pending_approvals|length }}</div>
+    <div class="pill-lbl">Awaiting HOD Sign-off</div>
+  </div>
+</div>
+
+<!-- ── 4 Specialized KPI Cards ─────────────────────────────────── -->
+<div class="hod-kpis">
+  <a href="#pendingApprovalsSection" class="hod-kpi highlight-warn">
+    <div class="hod-kpi-icon icon-amber">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/>
+      </svg>
+    </div>
+    <div class="hod-kpi-info">
+      <div class="hod-kpi-val">{{ pending_approvals|length }}</div>
+      <div class="hod-kpi-lbl">Pending Approvals</div>
+      <div class="hod-kpi-sub">{% if pending_approvals|length > 0 %}⚡ Action Required{% else %}All reviewed{% endif %}</div>
+    </div>
+  </a>
+
+  <div class="hod-kpi">
+    <div class="hod-kpi-icon icon-blue">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <div class="hod-kpi-info">
+      <div class="hod-kpi-val">{{ dept_events_count }}</div>
+      <div class="hod-kpi-lbl">Dept Events (Month)</div>
+      <div class="hod-kpi-sub">{{ dept.code|default:"Department" }} organizers</div>
+    </div>
+  </div>
+
+  <div class="hod-kpi">
+    <div class="hod-kpi-icon icon-green">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <div class="hod-kpi-info">
+      <div class="hod-kpi-val">{{ approved_count }}</div>
+      <div class="hod-kpi-lbl">Approved Bookings</div>
+      <div class="hod-kpi-sub">Confirmed this month</div>
+    </div>
+  </div>
+
+  <div class="hod-kpi">
+    <div class="hod-kpi-icon icon-rose">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+    </div>
+    <div class="hod-kpi-info">
+      <div class="hod-kpi-val">{{ rejected_count }}</div>
+      <div class="hod-kpi-lbl">Rejected / Cancelled</div>
+      <div class="hod-kpi-sub">This month</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quick Actions Bar ───────────────────────────────────────── -->
+<div class="hod-actions-bar">
+  <div class="hod-actions-title">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span>HOD Quick Controls</span>
+  </div>
+  <div class="hod-actions-btns">
+    <a href="#pendingApprovalsSection" class="btn-action-sm btn-action-amber">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+      Review Queue ({{ pending_approvals|length }})
+    </a>
+    <a href="{% url 'bookings:new_booking' %}" class="btn-action-sm btn-action-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Book Department Event
+    </a>
+    <a href="{% url 'bookings:calendar' %}" class="btn-action-sm btn-action-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Dept Schedule
+    </a>
+    <a href="{% url 'bookings:hall_availability' %}" class="btn-action-sm btn-action-outline">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Check Availability
+    </a>
+  </div>
+</div>
+
+<!-- ── Two-Column Main Layout ──────────────────────────────────── -->
+<div class="hod-wrap">
+
+  <!-- LEFT: Core Approvals & Department Bookings ─────────────── -->
+  <div class="hod-main-col">
+
+    <!-- 1. Pending Approvals Section ── -->
+    <div class="hod-card" id="pendingApprovalsSection">
+      <div class="hod-card-header">
+        <div class="hod-card-title-group">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            Pending Approvals
+            {% if pending_approvals|length > 0 %}
+            <span class="hod-badge-count">{{ pending_approvals|length }} action needed</span>
+            {% endif %}
+          </h3>
+          <p>Booking requests submitted by {{ dept.name|default:"department" }} faculty awaiting HOD authorization</p>
+        </div>
+        <div>
+          <a href="{% url 'approvals:pending_list' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">Full Approvals View →</a>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="hod-tabs">
+        <button type="button" class="hod-tab active" data-filter="all">
+          All Requests <span class="hod-tab-pill">{{ pending_approvals|length }}</span>
+        </button>
+        <button type="button" class="hod-tab" data-filter="Seminar">
+          Seminar
+        </button>
+        <button type="button" class="hod-tab" data-filter="Workshop">
+          Workshop
+        </button>
+        <button type="button" class="hod-tab" data-filter="Guest Lecture">
+          Guest Lecture
+        </button>
+        <button type="button" class="hod-tab" data-filter="Other">
+          Others
+        </button>
+      </div>
+
+      <!-- Pending Items List -->
+      <div class="hod-pending-list" id="pendingListContainer">
+        {% if pending_approvals %}
+          {% for b in pending_approvals %}
+          <div class="hod-pending-item" data-event-type="{{ b.event_type }}">
+            <div>
+              <div class="hod-pi-meta">
+                <span class="hod-pi-id">#{{ b.booking_id }}</span>
+                <span class="hod-pi-badge">{{ b.event_type }}</span>
+                <span class="badge badge-warning" style="font-size:10.5px;">Awaiting HOD Sign-off</span>
+              </div>
+              <h4 class="hod-pi-title">{{ b.event_name }}</h4>
+              <div class="hod-pi-details">
+                <div class="hod-pi-detail-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <strong>{{ b.event_date|date:"D, d M Y" }}</strong>
+                </div>
+                <div class="hod-pi-detail-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                  <span>{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</span>
+                </div>
+                <div class="hod-pi-detail-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                  <span>{{ b.get_active_hall.name }} (Cap: {{ b.get_active_hall.capacity }})</span>
+                </div>
+                <div class="hod-pi-detail-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  <span>{{ b.expected_participants }} participants</span>
+                </div>
+              </div>
+              <div class="hod-pi-faculty">
+                <span class="hod-pi-avatar">{{ b.user.first_name|first|default:"F"|upper }}</span>
+                <span><strong>{{ b.user.get_full_name|default:b.user.username }}</strong> · {{ b.user.profile.designation|default:"Faculty" }}</span>
+                <span style="color:#94A3B8;">· Submitted {{ b.created_at|timesince }} ago</span>
+              </div>
+            </div>
+
+            <div class="hod-pi-actions">
+              <!-- Fast Action: Direct Modal Trigger -->
+              <button type="button" class="btn btn-sm btn-success" onclick="openApproveModal('{{ b.booking_id }}', '{{ b.event_name|escapejs }}', '{{ b.user.get_full_name|default:b.user.username|escapejs }}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Approve
+              </button>
+              <button type="button" class="btn btn-sm btn-outline" style="color:#DC2626; border-color:#FECACA;" onclick="openRejectModal('{{ b.booking_id }}', '{{ b.event_name|escapejs }}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Reject
+              </button>
+              <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline" title="Full Details">
+                Review →
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="hod-empty">
+            <div class="hod-empty-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="hod-empty-title">All Caught Up!</div>
+            <div class="hod-empty-desc">There are no pending booking approvals for {{ dept.name|default:"your department" }} at this time.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 2. Department Bookings & History Section ── -->
+    <div class="hod-card">
+      <div class="hod-card-header">
+        <div class="hod-card-title-group">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Department Bookings & Schedule
+          </h3>
+          <p>Recent events organized by faculty of {{ dept.name|default:"the department" }}</p>
+        </div>
+        <a href="{% url 'bookings:calendar' %}" class="btn btn-sm btn-outline" style="font-size:11.5px;">View Calendar →</a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Event Title</th>
+              <th>Organizer</th>
+              <th>Hall</th>
+              <th>Date & Time</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if dept_bookings %}
+              {% for b in dept_bookings %}
+              <tr>
+                <td style="font-family:monospace; font-weight:700; color:#1D5FA7;">{{ b.booking_id }}</td>
+                <td>
+                  <a href="{% url 'bookings:detail' b.booking_id %}" style="font-weight:600; color:#0F172A; text-decoration:none;">{{ b.event_name }}</a>
+                  <div style="font-size:11px; color:#64748B;">{{ b.event_type }}</div>
+                </td>
+                <td style="font-size:12px;">{{ b.user.get_full_name|default:b.user.username }}</td>
+                <td>
+                  <strong style="font-size:12px;">{{ b.get_active_hall.name }}</strong>
+                </td>
+                <td style="white-space:nowrap; font-size:12px;">
+                  <div><strong>{{ b.event_date|date:"D, d M" }}</strong></div>
+                  <div style="font-size:11px; color:#1D5FA7;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</div>
+                </td>
+                <td>
+                  {% if b.status == 'APPROVED' %}
+                    <span class="badge badge-success">Approved</span>
+                  {% elif b.status == 'HOD_APPROVED' %}
+                    <span class="badge badge-info">HOD Approved</span>
+                  {% elif b.status == 'COORDINATOR_APPROVED' %}
+                    <span class="badge badge-info">Coord Approved</span>
+                  {% elif b.status == 'REJECTED' %}
+                    <span class="badge badge-danger">Rejected</span>
+                  {% elif b.status == 'CANCELLED' %}
+                    <span class="badge badge-neutral">Cancelled</span>
+                  {% else %}
+                    <span class="badge badge-warning">{{ b.get_status_display }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'bookings:detail' b.booking_id %}" class="btn btn-sm btn-outline" style="font-size:11px; padding:3px 8px;">View</a>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7">
+                  <div class="hod-empty" style="padding:24px;">
+                    <div class="hod-empty-desc">No events registered yet for this department.</div>
+                  </div>
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /left -->
+
+  <!-- RIGHT: Today's Schedule & Hall Availability ────────────── -->
+  <div class="hod-sidebar-panel">
+
+    <!-- ── Institutional Identity / User Profile Card ──────── -->
+    <div class="hod-side-card" id="user-identity-card">
+      <div class="hod-side-head">
+        <h4>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2.2" style="vertical-align:middle; margin-right:4px;">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Account Profile
+        </h4>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+          <span class="badge" style="background:#F0FDF4; color:#166534; border:1px solid #BBF7D0; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:5px;">
+            <span style="display:inline-grid; grid-template-columns:1fr 1fr; gap:1.5px; width:9px; height:9px;">
+              <span style="background:#F25022;"></span><span style="background:#7FBA00;"></span>
+              <span style="background:#00A4EF;"></span><span style="background:#FFB900;"></span>
+            </span>
+            Microsoft
+          </span>
+        {% else %}
+          <span class="badge" style="background:#F1F5F9; color:#475569; font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:12px;">
+            Local
+          </span>
+        {% endif %}
+      </div>
+      <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Name</div>
+          <div style="font-size:13px; font-weight:700; color:#0F172A; margin-top:2px;" id="profile-name">
+            {{ user.get_full_name|default:user.username|default:"Name not available" }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Email</div>
+          <div style="font-size:12px; color:#334155; margin-top:2px; word-break:break-all;" id="profile-email">
+            {{ user.email|default:"Email not available" }}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-top:4px; border-top:1px dashed #F1F5F9;">
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Department</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-department">
+              {% if user_profile and user_profile.department %}
+                {{ user_profile.department.name }}
+              {% else %}
+                Department not assigned
+              {% endif %}
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; color:#64748B; font-weight:700;">Role</div>
+            <div style="font-size:12px; font-weight:600; color:#1E293B; margin-top:2px;" id="profile-role">
+              {% if user_profile %}
+                {{ user_profile.role }}
+              {% else %}
+                HOD
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% if user_profile and user_profile.auth_provider == 'microsoft' %}
+        <div style="margin-top:2px; padding:7px 10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; font-size:11px; color:#475569; display:flex; align-items:center; gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span style="font-weight:600;">Signed in with Microsoft</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Today's Schedule Panel -->
+    <div class="hod-side-card">
+      <div class="hod-side-head">
+        <h4>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          Today's Schedule
+        </h4>
+        <a href="{% url 'bookings:calendar' %}" class="hod-side-link">View All</a>
+      </div>
+      <div class="hod-sched-list">
+        {% for slot in todays_schedule_panel %}
+        <div class="hod-sched-row">
+          <div class="hod-sched-time">{{ slot.time_label }}</div>
+          <div class="hod-sched-event">
+            {% if slot.booking %}
+              <div class="hod-sched-name">{{ slot.booking.event_name }}</div>
+              <div class="hod-sched-hall">{{ slot.booking.get_active_hall.name }} · {{ slot.booking.department.code }}</div>
+            {% else %}
+              <div class="hod-sched-empty">No Booking Scheduled</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Mini Hall Availability -->
+    <div class="hod-side-card">
+      <div class="hod-side-head">
+        <h4>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Hall Availability Today
+        </h4>
+        <a href="{% url 'bookings:hall_availability' %}" class="hod-side-link">Full View</a>
+      </div>
+      <div class="hod-ha-grid">
+        {% for item in hall_avail_mini %}
+        <a href="{% url 'bookings:hall_availability' %}" class="hod-ha-card">
+          <div class="hod-ha-name">{{ item.hall.name }}</div>
+          <div class="hod-ha-cap">Cap: {{ item.hall.capacity }}</div>
+          {% if item.is_maintenance %}
+            <div class="hod-ha-status maint"><span class="hod-ha-dot"></span> Maint.</div>
+          {% elif item.is_busy %}
+            <div class="hod-ha-status busy"><span class="hod-ha-dot"></span> Busy</div>
+          {% else %}
+            <div class="hod-ha-status avail"><span class="hod-ha-dot"></span> Available</div>
+          {% endif %}
+        </a>
+        {% empty %}
+        <div style="grid-column:1/-1; font-size:11px; color:#94A3B8; text-align:center; padding:12px;">No halls registered.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Department Info Card -->
+    <div class="hod-side-card" style="padding:16px;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+        <div style="width:36px; height:36px; border-radius:10px; background:#EAF3FF; color:#1D5FA7; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;">
+          {{ dept.code|default:"HOD" }}
+        </div>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:#0F172A;">{{ dept.name|default:"Department of Engineering" }}</div>
+          <div style="font-size:11px; color:#64748B;">HOD: {{ request.user.get_full_name|default:request.user.username }}</div>
+        </div>
+      </div>
+      <div style="font-size:11.5px; color:#475569; line-height:1.5; background:#F8FAFC; border-radius:8px; padding:10px; border:1px solid #EDF2F7;">
+        <strong>HOD Approval Policy:</strong> As Head of Department, your approval verifies event relevance, faculty authorization, and academic schedule compatibility before reaching the Hall Coordinator.
+      </div>
+    </div>
+
+  </div><!-- /right -->
+
+</div><!-- /hod-wrap -->
+
+<!-- ── Quick Approve Modal ─────────────────────────────────────── -->
+<div id="hodApproveModal" class="hod-modal-overlay">
+  <div class="hod-modal-card">
+    <div class="hod-modal-head">
+      <h4>Approve Booking Request</h4>
+      <button type="button" class="hod-modal-close" onclick="closeHodModal('hodApproveModal')">&times;</button>
+    </div>
+    <form id="hodApproveForm" method="POST" action="">
+      {% csrf_token %}
+      <div class="hod-modal-body">
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:13px; font-weight:700; color:#166534;" id="approveModalEventTitle">Event Title</div>
+          <div style="font-size:11.5px; color:#15803D; margin-top:2px;">Requested by: <span id="approveModalFacultyName"></span></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="approveRemarks">HOD Approval Remarks (Optional)</label>
+          <textarea class="form-control" id="approveRemarks" name="remarks" rows="2" placeholder="e.g. Recommended and approved for seminar hall allocation."></textarea>
+        </div>
+      </div>
+      <div class="hod-modal-foot">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeHodModal('hodApproveModal')">Cancel</button>
+        <button type="submit" name="action" value="APPROVE" class="btn btn-success btn-sm">
+          Confirm HOD Approval →
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Quick Reject Modal ──────────────────────────────────────── -->
+<div id="hodRejectModal" class="hod-modal-overlay">
+  <div class="hod-modal-card">
+    <div class="hod-modal-head">
+      <h4>Reject Booking Request</h4>
+      <button type="button" class="hod-modal-close" onclick="closeHodModal('hodRejectModal')">&times;</button>
+    </div>
+    <form id="hodRejectForm" method="POST" action="">
+      {% csrf_token %}
+      <div class="hod-modal-body">
+        <div style="background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:13px; font-weight:700; color:#991B1B;" id="rejectModalEventTitle">Event Title</div>
+          <div style="font-size:11.5px; color:#B91C1C; margin-top:2px;">This request will be declined and returned to faculty.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="rejectRemarks">Reason for Rejection <span style="color:#DC2626;">*</span></label>
+          <textarea class="form-control" id="rejectRemarks" name="remarks" rows="3" required placeholder="Please provide specific feedback for why this booking cannot be approved..."></textarea>
+        </div>
+      </div>
+      <div class="hod-modal-foot">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeHodModal('hodRejectModal')">Cancel</button>
+        <button type="submit" name="action" value="REJECT" class="btn btn-danger btn-sm">
+          Reject Request
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  // ── Tab Filtering by Event Type ──────────────────────────────
+  const tabs = document.querySelectorAll('.hod-tab');
+  const items = document.querySelectorAll('.hod-pending-item');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = tab.dataset.filter;
+
+      items.forEach(item => {
+        if (filter === 'all') {
+          item.style.display = '';
+        } else if (filter === 'Other') {
+          const t = item.dataset.eventType;
+          if (t !== 'Seminar' && t !== 'Workshop' && t !== 'Guest Lecture') {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        } else {
+          if (item.dataset.eventType === filter) {
+            item.style.display = '';
+          } else {
+            item.style.display = 'none';
+          }
+        }
+      });
+    });
+  });
+})();
+
+// ── Approval Modals ──────────────────────────────────────────
+function openApproveModal(bookingId, eventTitle, facultyName) {
+  const form = document.getElementById('hodApproveForm');
+  form.action = '/approvals/' + bookingId + '/action/';
+  document.getElementById('approveModalEventTitle').textContent = eventTitle;
+  document.getElementById('approveModalFacultyName').textContent = facultyName;
+  document.getElementById('hodApproveModal').classList.add('active');
+}
+
+function openRejectModal(bookingId, eventTitle) {
+  const form = document.getElementById('hodRejectForm');
+  form.action = '/approvals/' + bookingId + '/action/';
+  document.getElementById('rejectModalEventTitle').textContent = eventTitle;
+  document.getElementById('hodRejectModal').classList.add('active');
+}
+
+function closeHodModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Close modal on escape or clicking outside
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeHodModal('hodApproveModal');
+    closeHodModal('hodRejectModal');
+  }
+});
+window.addEventListener('click', function(e) {
+  if (e.target.classList.contains('hod-modal-overlay')) {
+    e.target.classList.remove('active');
+  }
+});
+</script>
+{% endblock %}

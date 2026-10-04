@@ -13,11 +13,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-mcet-seminar-hall-booking-
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,booking.dexoshpuse.com').split(',') if host.strip()]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost,bookings.dexoshouse.com,booking.dexoshouse.com,www.bookings.dexoshouse.com').split(',') if host.strip()]
 if 'testserver' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('testserver')
 
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://booking.dexoshpuse.com,http://127.0.0.1:8000,http://localhost:8000').split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://bookings.dexoshouse.com,https://booking.dexoshouse.com,http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:8003,http://localhost:8003').split(',') if origin.strip()]
 
 # Application definition
 INSTALLED_APPS = [
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -123,6 +124,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
@@ -140,7 +142,7 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 MICROSOFT_CLIENT_ID = os.getenv('MICROSOFT_CLIENT_ID', '')
 MICROSOFT_CLIENT_SECRET = os.getenv('MICROSOFT_CLIENT_SECRET', '')
 MICROSOFT_TENANT_ID = os.getenv('MICROSOFT_TENANT_ID', 'common')
-MICROSOFT_REDIRECT_URI = os.getenv('MICROSOFT_REDIRECT_URI', 'https://booking.dexoshpuse.com/auth/microsoft/callback/')
+MICROSOFT_REDIRECT_URI = os.getenv('MICROSOFT_REDIRECT_URI', 'https://bookings.dexoshouse.com/auth/microsoft/callback/')
 ALLOWED_EMAIL_DOMAINS = [d.strip().lower() for d in os.getenv('ALLOWED_EMAIL_DOMAINS', 'mcet.in,drmcet.ac.in').split(',') if d.strip()]
 
 # Demo Login Flag (Must be False in production)
@@ -148,12 +150,12 @@ ENABLE_DEMO_LOGIN = os.getenv('ENABLE_DEMO_LOGIN', 'True').lower() in ('true', '
 
 # Email Notification Settings
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'mail.booking.dexoshpuse.com')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'mail.dexoshouse.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() in ('true', '1', 't')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'MCET College ERP <notifications@booking.dexoshpuse.com>')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'MCET College ERP <notifications@dexoshouse.com>')
 
 # Production Security Headers
 if not DEBUG:
@@ -163,3 +165,6 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

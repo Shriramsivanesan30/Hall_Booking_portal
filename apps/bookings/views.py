@@ -456,6 +456,10 @@ def approved_bookings_view(request):
     date_filter = request.GET.get('date')
     search = request.GET.get('search', '').strip()
 
+    dept_id = int(dept_id) if dept_id and str(dept_id).strip().isdigit() else None
+    hall_id = int(hall_id) if hall_id and str(hall_id).strip().isdigit() else None
+    date_filter = date_filter if date_filter and date_filter not in ('None', 'undefined') else None
+
     bookings_qs = Booking.objects.filter(
         status=Booking.STATUS_APPROVED
     ).select_related('user', 'department', 'allocated_hall', 'preferred_hall').order_by('-event_date', '-start_time')
@@ -513,6 +517,10 @@ def api_calendar_events(request):
     hall_id = request.GET.get('hall')
     event_type = request.GET.get('event_type')
     search = request.GET.get('search', '').strip()
+
+    dept_id = int(dept_id) if dept_id and str(dept_id).strip().isdigit() else None
+    hall_id = int(hall_id) if hall_id and str(hall_id).strip().isdigit() else None
+    event_type = event_type if event_type and event_type not in ('None', 'undefined') else None
 
     bookings_qs = Booking.objects.select_related('preferred_hall', 'allocated_hall', 'department', 'user')
 
@@ -630,6 +638,7 @@ def api_calendar_events(request):
 def hall_availability_view(request):
     """
     Interactive Hall Availability matrix for today or chosen date.
+    Builds a 5-slot timeline (08-10, 10-12, 12-14, 14-16, 16-18) per hall.
     """
     selected_date_str = request.GET.get('date', timezone.localdate().strftime('%Y-%m-%d'))
     try:
@@ -640,22 +649,88 @@ def hall_availability_view(request):
     halls = Hall.objects.prefetch_related('facilities').order_by('name')
     bookings_on_date = Booking.objects.filter(
         event_date=selected_date,
-        status__in=[Booking.STATUS_APPROVED, Booking.STATUS_SUBMITTED, Booking.STATUS_HOD_APPROVED, Booking.STATUS_COORDINATOR_APPROVED]
+        status__in=[
+            Booking.STATUS_APPROVED,
+            Booking.STATUS_SUBMITTED,
+            Booking.STATUS_HOD_APPROVED,
+            Booking.STATUS_COORDINATOR_APPROVED,
+        ]
     ).select_related('preferred_hall', 'allocated_hall', 'department')
 
-    # Group bookings by hall
+    # Define the 5 display time windows (2-hour slots)
+    TIME_SLOTS = [
+        {'label': '08:00 AM', 'start': '08:00 AM', 'end': '10:00 AM',
+         'start_h': 8,  'end_h': 10},
+        {'label': '10:00 AM', 'start': '10:00 AM', 'end': '12:00 PM',
+         'start_h': 10, 'end_h': 12},
+        {'label': '12:00 PM', 'start': '12:00 PM', 'end': '02:00 PM',
+         'start_h': 12, 'end_h': 14},
+        {'label': '02:00 PM', 'start': '02:00 PM', 'end': '04:00 PM',
+         'start_h': 14, 'end_h': 16},
+        {'label': '04:00 PM', 'start': '04:00 PM', 'end': '06:00 PM',
+         'start_h': 16, 'end_h': 18},
+    ]
+
+    def _booking_overlaps(booking, slot):
+        """Check if booking overlaps with a 2-hour display slot."""
+        b_start = booking.start_time.hour + booking.start_time.minute / 60
+        b_end   = booking.end_time.hour   + booking.end_time.minute   / 60
+        s_start = slot['start_h']
+        s_end   = slot['end_h']
+        return b_start < s_end and b_end > s_start
+
+    def _booking_status(booking):
+        if booking.status == Booking.STATUS_APPROVED:
+            return 'selected'
+        elif booking.status in [Booking.STATUS_HOD_APPROVED, Booking.STATUS_COORDINATOR_APPROVED]:
+            return 'pending'
+        elif booking.status == Booking.STATUS_SUBMITTED:
+            return 'pending'
+        return 'booked'
+
     hall_cards = []
     for hall in halls:
         hall_bookings = [b for b in bookings_on_date if b.get_active_hall().id == hall.id]
+
+        time_slots = []
+        for slot_def in TIME_SLOTS:
+            matching = [b for b in hall_bookings if _booking_overlaps(b, slot_def)]
+            if hall.is_under_maintenance:
+                chip_status = 'maintenance'
+                booking_name = ''
+                dept = ''
+                booking_obj = None
+            elif matching:
+                booking_obj = matching[0]
+                chip_status = _booking_status(booking_obj)
+                booking_name = booking_obj.event_name
+                dept = booking_obj.department.name if booking_obj.department else ''
+            else:
+                chip_status = 'available'
+                booking_name = ''
+                dept = ''
+                booking_obj = None
+
+            time_slots.append({
+                'label':        slot_def['label'],
+                'start':        slot_def['start'],
+                'end':          slot_def['end'],
+                'status':       chip_status,
+                'booking':      booking_obj,
+                'booking_name': booking_name,
+                'dept':         dept,
+            })
+
         hall_cards.append({
-            'hall': hall,
-            'bookings': hall_bookings,
-            'is_busy': len(hall_bookings) > 0,
+            'hall':                hall,
+            'bookings':            hall_bookings,
+            'time_slots':          time_slots,
+            'is_busy':             len(hall_bookings) > 0,
             'is_under_maintenance': hall.is_under_maintenance,
         })
 
     return render(request, 'halls/availability.html', {
-        'selected_date': selected_date,
+        'selected_date':     selected_date,
         'selected_date_str': selected_date.strftime('%Y-%m-%d'),
-        'hall_cards': hall_cards,
+        'hall_cards':        hall_cards,
     })

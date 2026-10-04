@@ -26,6 +26,21 @@ class UserProfile(models.Model):
     designation = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     auth_provider = models.CharField(max_length=50, default='local') # 'microsoft' or 'local'
+    microsoft_user_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        unique=True,
+        db_index=True,
+        help_text="Microsoft Entra Object ID (oid)"
+    )
+    user_principal_name = models.EmailField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Microsoft User Principal Name (UPN)"
+    )
     is_approved = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

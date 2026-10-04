@@ -20,6 +20,9 @@ def pending_approvals_list_view(request):
     dept_id = request.GET.get('department', '')
     search = request.GET.get('search', '').strip()
 
+    dept_id = int(dept_id) if dept_id and str(dept_id).strip().isdigit() else None
+    stage_filter = stage_filter if stage_filter and stage_filter not in ('None', 'undefined') else ''
+
     bookings_qs = Booking.objects.select_related('user', 'department', 'preferred_hall', 'allocated_hall')
 
     if profile.is_admin_user:

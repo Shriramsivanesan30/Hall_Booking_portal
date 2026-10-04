@@ -4,90 +4,655 @@
 {% block title %}Hall Availability{% endblock %}
 {% block breadcrumb %}Hall Availability{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ─── Page Header ────────────────────────────────────────────── */
+.avail-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.avail-page-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+.avail-page-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.avail-date-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--primary, #123B72);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.avail-date-badge svg { opacity: .85; }
+
+/* ─── Filter Bar ─────────────────────────────────────────────── */
+.avail-filter-bar {
+  background: #fff;
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.avail-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+}
+.avail-filter-group label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--text-muted, #94A3B8);
+}
+.avail-filter-group select,
+.avail-filter-group input[type="date"] {
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--text-primary, #1E293B);
+  background: #F8FAFC;
+  outline: none;
+  transition: border-color .2s;
+  cursor: pointer;
+}
+.avail-filter-group select:focus,
+.avail-filter-group input[type="date"]:focus {
+  border-color: var(--primary, #123B72);
+  background: #fff;
+}
+.avail-filter-search-btn {
+  margin-top: 18px;
+  padding: 8px 18px;
+  background: var(--primary, #123B72);
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.avail-filter-search-btn:hover {
+  background: #1D5FA7;
+  transform: translateY(-1px);
+}
+.avail-filter-today-btn {
+  margin-top: 18px;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--text-muted, #64748B);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .2s;
+}
+.avail-filter-today-btn:hover {
+  border-color: var(--primary, #123B72);
+  color: var(--primary, #123B72);
+}
+
+/* ─── Legend ─────────────────────────────────────────────────── */
+.avail-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 12px 20px;
+  background: #fff;
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #475569);
+}
+.legend-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.legend-dot.available  { background: #22C55E; }
+.legend-dot.selected   { background: #1D5FA7; }
+.legend-dot.pending    { background: #F59E0B; }
+.legend-dot.booked     { background: #EF4444; }
+.legend-dot.maintenance{ background: #94A3B8; }
+
+/* ─── Hall Row Card ──────────────────────────────────────────── */
+.avail-hall-row {
+  background: #fff;
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 14px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  transition: box-shadow .2s, transform .15s;
+}
+.avail-hall-row:hover {
+  box-shadow: 0 6px 24px rgba(18,59,114,.10);
+  transform: translateY(-2px);
+}
+.avail-hall-inner {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+@media (max-width: 900px) {
+  .avail-hall-inner { grid-template-columns: 1fr; }
+  .avail-slots-col  { overflow-x: auto; }
+}
+
+/* ─── Hall Info Column ───────────────────────────────────────── */
+.avail-hall-info {
+  display: flex;
+  gap: 14px;
+  padding: 18px;
+  border-right: 1px solid var(--border-color, #E2E8F0);
+  align-items: flex-start;
+}
+.avail-hall-thumb {
+  width: 86px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #EAF3FF;
+}
+.avail-hall-thumb-placeholder {
+  width: 86px;
+  height: 64px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #EAF3FF 0%, #C7DEFF 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.avail-hall-meta { flex: 1; min-width: 0; }
+.avail-hall-meta h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #1E293B);
+  margin: 0 0 3px;
+  line-height: 1.3;
+}
+.avail-hall-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--text-muted, #94A3B8);
+  margin-bottom: 6px;
+}
+.avail-hall-caps-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-secondary, #475569);
+  margin-bottom: 7px;
+}
+.avail-hall-caps-row strong { color: var(--text-primary, #1E293B); }
+.avail-fac-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.avail-fac-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  background: #EAF3FF;
+  color: #1D5FA7;
+  border-radius: 20px;
+}
+.avail-hall-link {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary, #123B72);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: gap .15s;
+}
+.avail-hall-link:hover { gap: 6px; }
+
+/* ─── Slots Column ───────────────────────────────────────────── */
+.avail-slots-col {
+  padding: 18px 20px;
+  overflow-x: auto;
+}
+.avail-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(110px, 1fr));
+  gap: 8px;
+  min-width: 580px;
+}
+.avail-slot-col { display: flex; flex-direction: column; gap: 5px; }
+.avail-slot-time-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted, #94A3B8);
+  text-align: center;
+  padding-bottom: 4px;
+  letter-spacing: .3px;
+}
+
+/* ─── Slot Chips ─────────────────────────────────────────────── */
+.avail-slot-chip {
+  border-radius: 9px;
+  padding: 8px 10px;
+  text-align: center;
+  cursor: default;
+  position: relative;
+  transition: filter .15s, transform .15s;
+  border: 1.5px solid transparent;
+}
+.avail-slot-chip:hover { transform: scale(1.03); filter: brightness(.96); }
+
+.avail-slot-chip.status-available {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+}
+.avail-slot-chip.status-booked {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+.avail-slot-chip.status-pending {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+}
+.avail-slot-chip.status-selected {
+  background: #1D5FA7;
+  border-color: #1D5FA7;
+}
+.avail-slot-chip.status-maintenance {
+  background: #F8FAFC;
+  border-color: #CBD5E1;
+}
+
+.chip-time {
+  font-size: 10.5px;
+  font-weight: 600;
+  display: block;
+  line-height: 1.4;
+}
+.status-available  .chip-time { color: #15803D; }
+.status-booked     .chip-time { color: #B91C1C; }
+.status-pending    .chip-time { color: #92400E; }
+.status-selected   .chip-time { color: #fff; }
+.status-maintenance .chip-time { color: #64748B; }
+
+.chip-label {
+  font-size: 10px;
+  font-weight: 700;
+  display: block;
+  margin-top: 3px;
+  line-height: 1.3;
+}
+.status-available  .chip-label { color: #16A34A; }
+.status-booked     .chip-label { color: #DC2626; }
+.status-pending    .chip-label { color: #D97706; }
+.status-selected   .chip-label { color: rgba(255,255,255,.9); }
+.status-maintenance .chip-label { color: #94A3B8; }
+
+.chip-info-icon {
+  position: absolute;
+  bottom: 5px;
+  right: 7px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.status-booked   .chip-info-icon { background: #FECACA; color: #B91C1C; }
+.status-pending  .chip-info-icon { background: #FDE68A; color: #92400E; }
+.status-selected .chip-info-icon { background: rgba(255,255,255,.25); color: #fff; }
+
+/* ─── Tooltip ────────────────────────────────────────────────── */
+.avail-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1E293B;
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 7px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s;
+  z-index: 100;
+  min-width: 120px;
+  text-align: left;
+  line-height: 1.5;
+}
+.avail-slot-chip:hover .avail-tooltip { opacity: 1; }
+.avail-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1E293B;
+}
+
+/* ─── No Halls ───────────────────────────────────────────────── */
+.avail-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ─── Maintenance banner ─────────────────────────────────────── */
+.maintenance-banner {
+  background: repeating-linear-gradient(
+    -45deg,
+    #F8FAFC,
+    #F8FAFC 8px,
+    #EEF2F7 8px,
+    #EEF2F7 16px
+  );
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-size: 11.5px;
+  color: #64748B;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  grid-column: 1 / -1;
+  min-width: 580px;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div class="page-title-group">
+
+<!-- ── Page Header ─────────────────────────────────────────────── -->
+<div class="avail-page-header">
+  <div>
     <h1>Hall Availability</h1>
-    <p>Check occupancy and schedule clearance for any date.</p>
+    <p>Find an available seminar hall and time slot quickly.</p>
   </div>
-  <div class="page-actions">
-    {% if user_profile.can_create_booking %}
-    <a href="{% url 'bookings:new_booking' %}" class="btn btn-primary btn-sm">Book a Hall</a>
-    {% endif %}
-  </div>
-</div>
-
-<div class="card" style="margin-bottom: 20px;">
-  <div class="filter-bar">
-    <form method="GET" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-      <label style="font-weight:600; font-size:13px;">Date:</label>
-      <input type="date" name="date" class="form-control" style="width:auto;" value="{{ selected_date_str }}">
-      <button type="submit" class="btn btn-outline btn-sm">Check</button>
-      <a href="{% url 'bookings:hall_availability' %}" class="btn btn-outline btn-sm" style="color:var(--text-muted);">Today</a>
-    </form>
+  <div class="avail-date-badge">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+    {{ selected_date|date:"l, d F Y" }}
   </div>
 </div>
 
-<p style="font-size:14px; font-weight:600; margin-bottom:14px;">
-  {{ selected_date|date:"l, d F Y" }}
-</p>
-
-<div class="hall-grid">
-  {% for item in hall_cards %}
-  <div class="hall-card">
-    <div class="hall-card-header">
-      <div>
-        <strong style="font-size:14px; color:var(--text-primary);">{{ item.hall.name }}</strong>
-        <span style="font-size:11px; color:var(--text-muted); display:block;">{{ item.hall.building }} · {{ item.hall.floor }}</span>
-      </div>
-      {% if item.is_under_maintenance %}
-      <span class="badge badge-neutral">Maintenance</span>
-      {% elif item.is_busy %}
-      <span class="badge badge-warning">{{ item.bookings|length }} Booked</span>
-      {% else %}
-      <span class="badge badge-success">Free All Day</span>
-      {% endif %}
+<!-- ── Filter Bar ──────────────────────────────────────────────── -->
+<div class="avail-filter-bar">
+  <form method="GET" style="display:contents;">
+    <div class="avail-filter-group">
+      <label>Date</label>
+      <input type="date" name="date" id="avail-date-input" value="{{ selected_date_str }}">
     </div>
-    <div class="hall-card-body">
-      <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:12px; color:var(--text-secondary);">
-        <span>Capacity: <strong style="color:var(--text-primary);">{{ item.hall.capacity }}</strong></span>
-        <span>{{ item.hall.code }}</span>
-      </div>
-
-      <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:12px;">
-        {% for fac in item.hall.available_facilities_list|slice:":5" %}
-        <span class="facility-tag">{{ fac }}</span>
+    <div class="avail-filter-group">
+      <label>Hall</label>
+      <select name="hall_filter" id="avail-hall-filter">
+        <option value="">All Halls</option>
+        {% for item in hall_cards %}
+        <option value="{{ item.hall.id }}" {% if request.GET.hall_filter == item.hall.id|stringformat:"s" %}selected{% endif %}>{{ item.hall.name }}</option>
         {% endfor %}
-      </div>
+      </select>
+    </div>
+    <div class="avail-filter-group">
+      <label>Capacity</label>
+      <select name="cap_filter" id="avail-cap-filter">
+        <option value="">Any Capacity</option>
+        <option value="50" {% if request.GET.cap_filter == "50" %}selected{% endif %}>Up to 50</option>
+        <option value="100" {% if request.GET.cap_filter == "100" %}selected{% endif %}>Up to 100</option>
+        <option value="200" {% if request.GET.cap_filter == "200" %}selected{% endif %}>Up to 200</option>
+        <option value="500" {% if request.GET.cap_filter == "500" %}selected{% endif %}>Up to 500</option>
+      </select>
+    </div>
+    <div class="avail-filter-group">
+      <label>Facilities</label>
+      <select name="fac_filter" id="avail-fac-filter">
+        <option value="">Any Facility</option>
+        <option value="Projector" {% if request.GET.fac_filter == "Projector" %}selected{% endif %}>Projector</option>
+        <option value="Audio System" {% if request.GET.fac_filter == "Audio System" %}selected{% endif %}>Audio System</option>
+        <option value="Air Conditioning" {% if request.GET.fac_filter == "Air Conditioning" %}selected{% endif %}>AC</option>
+        <option value="Wi-Fi" {% if request.GET.fac_filter == "Wi-Fi" %}selected{% endif %}>Wi-Fi</option>
+        <option value="Stage" {% if request.GET.fac_filter == "Stage" %}selected{% endif %}>Stage</option>
+        <option value="Video Conferencing" {% if request.GET.fac_filter == "Video Conferencing" %}selected{% endif %}>Video Conf.</option>
+      </select>
+    </div>
+    <div class="avail-filter-group">
+      <label>Status</label>
+      <select name="status_filter" id="avail-status-filter">
+        <option value="">All Status</option>
+        <option value="available" {% if request.GET.status_filter == "available" %}selected{% endif %}>Available</option>
+        <option value="booked" {% if request.GET.status_filter == "booked" %}selected{% endif %}>Booked</option>
+        <option value="maintenance" {% if request.GET.status_filter == "maintenance" %}selected{% endif %}>Maintenance</option>
+      </select>
+    </div>
+    <button type="submit" class="avail-filter-search-btn" id="avail-search-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </button>
+  </form>
+  <a href="{% url 'bookings:hall_availability' %}" class="avail-filter-today-btn">Today</a>
+</div>
 
-      <div style="border-top:1px solid var(--border-color); padding-top:10px;">
-        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:6px;">Schedule</span>
-        {% if item.bookings %}
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            {% for b in item.bookings %}
-            <div style="padding:6px 8px; background:var(--neutral-bg); border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:space-between;">
-              <div>
-                <strong style="color:var(--secondary); font-size:11.5px;">{{ b.start_time|time:"g:i A" }} – {{ b.end_time|time:"g:i A" }}</strong>
-                <span style="font-size:11.5px; color:var(--text-primary); display:block;">{{ b.event_name|truncatechars:28 }}</span>
-              </div>
-              <span class="badge {{ b.status_badge_class }}" style="font-size:10px;">{{ b.get_status_display }}</span>
-            </div>
-            {% endfor %}
-          </div>
+<!-- ── Legend ──────────────────────────────────────────────────── -->
+<div class="avail-legend">
+  <div class="legend-item"><span class="legend-dot available"></span> Available</div>
+  <div class="legend-item"><span class="legend-dot selected"></span> Selected / Confirmed</div>
+  <div class="legend-item"><span class="legend-dot pending"></span> Pending Approval</div>
+  <div class="legend-item"><span class="legend-dot booked"></span> Booked</div>
+  <div class="legend-item"><span class="legend-dot maintenance"></span> Maintenance</div>
+</div>
+
+<!-- ── Hall Rows ────────────────────────────────────────────────── -->
+{% if hall_cards %}
+  {% for item in hall_cards %}
+  <div class="avail-hall-row" id="hall-row-{{ item.hall.id }}" data-hall-id="{{ item.hall.id }}" data-capacity="{{ item.hall.capacity }}" data-maintenance="{{ item.is_under_maintenance|yesno:'1,0' }}">
+    <div class="avail-hall-inner">
+
+      <!-- Info Column -->
+      <div class="avail-hall-info">
+        {% if item.hall.image %}
+          <img src="{{ item.hall.image.url }}" alt="{{ item.hall.name }}" class="avail-hall-thumb">
         {% else %}
-          <div style="padding:10px; background:var(--success-bg); border-radius:var(--radius-sm); text-align:center; color:#15803D; font-size:12px; font-weight:600;">
-            Available all day
+          <div class="avail-hall-thumb-placeholder">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1D5FA7" stroke-width="1.5" opacity=".6">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
           </div>
         {% endif %}
-      </div>
-    </div>
-    <div class="hall-card-footer">
-      <a href="{% url 'halls:detail' item.hall.id %}" style="font-size:11.5px; font-weight:600;">Details →</a>
-      {% if user_profile.can_create_booking and not item.is_under_maintenance %}
-      <a href="{% url 'bookings:new_booking' %}" class="btn btn-sm btn-outline">Book</a>
-      {% endif %}
-    </div>
-  </div>
+
+        <div class="avail-hall-meta">
+          <h3>{{ item.hall.name }}</h3>
+          <div class="avail-hall-location">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {{ item.hall.building }} – {{ item.hall.floor }}
+          </div>
+          <div class="avail-hall-caps-row">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Capacity: <strong>{{ item.hall.capacity }}</strong>
+          </div>
+          <div class="avail-fac-tags">
+            {% for fac in item.hall.available_facilities_list|slice:":5" %}
+            <span class="avail-fac-tag">{{ fac }}</span>
+            {% endfor %}
+          </div>
+          <a href="{% url 'halls:detail' item.hall.id %}" class="avail-hall-link">
+            View Details
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div><!-- /info col -->
+
+      <!-- Slots Column -->
+      <div class="avail-slots-col">
+        {% if item.is_under_maintenance %}
+          <div class="avail-slots-grid">
+            <div class="maintenance-banner">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              Under Maintenance{% if item.hall.maintenance_reason %}: {{ item.hall.maintenance_reason }}{% endif %}
+            </div>
+          </div>
+        {% else %}
+          <div class="avail-slots-grid">
+            {% for slot in item.time_slots %}
+            <div class="avail-slot-col">
+              <div class="avail-slot-time-header">{{ slot.label }}</div>
+              <div class="avail-slot-chip status-{{ slot.status }}"
+                   {% if slot.booking %}title="{{ slot.booking_name }}"{% endif %}>
+                <span class="chip-time">{{ slot.start }} – {{ slot.end }}</span>
+                {% if slot.status == 'available' %}
+                  <span class="chip-label">Available</span>
+                {% elif slot.status == 'booked' %}
+                  <span class="chip-label">{{ slot.booking_name|truncatechars:18 }}</span>
+                  <span class="chip-info-icon">i</span>
+                  <div class="avail-tooltip">
+                    <strong>{{ slot.booking_name }}</strong><br>
+                    {{ slot.dept }}<br>
+                    {{ slot.start }} – {{ slot.end }}
+                  </div>
+                {% elif slot.status == 'pending' %}
+                  <span class="chip-label">{{ slot.booking_name|truncatechars:18 }}</span>
+                  <span class="chip-info-icon">i</span>
+                  <div class="avail-tooltip">
+                    <strong>{{ slot.booking_name }}</strong><br>
+                    {{ slot.dept }}<br>
+                    Pending Approval
+                  </div>
+                {% elif slot.status == 'selected' %}
+                  <span class="chip-label">{{ slot.booking_name|truncatechars:18 }}</span>
+                  <span class="chip-info-icon">i</span>
+                  <div class="avail-tooltip">
+                    <strong>{{ slot.booking_name }}</strong><br>
+                    {{ slot.dept }}<br>
+                    Confirmed
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div><!-- /slots grid -->
+        {% endif %}
+      </div><!-- /slots col -->
+
+    </div><!-- /inner -->
+  </div><!-- /hall-row -->
   {% endfor %}
-</div>
+{% else %}
+  <div class="avail-empty">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" style="margin-bottom:12px;">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    <div>No halls found.</div>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // ── Client-side filtering (instant, no reload needed) ──────────
+  const hallFilter    = document.getElementById('avail-hall-filter');
+  const capFilter     = document.getElementById('avail-cap-filter');
+  const facFilter     = document.getElementById('avail-fac-filter');
+  const statusFilter  = document.getElementById('avail-status-filter');
+  const rows          = document.querySelectorAll('.avail-hall-row');
+
+  function applyFilters() {
+    const hallVal   = hallFilter ? hallFilter.value : '';
+    const capVal    = capFilter  ? parseInt(capFilter.value) || 0 : 0;
+    const facVal    = facFilter  ? facFilter.value.toLowerCase() : '';
+    const statusVal = statusFilter ? statusFilter.value : '';
+
+    rows.forEach(row => {
+      let show = true;
+      const id         = row.dataset.hallId;
+      const capacity   = parseInt(row.dataset.capacity) || 0;
+      const isMaint    = row.dataset.maintenance === '1';
+      const facTags    = Array.from(row.querySelectorAll('.avail-fac-tag')).map(t => t.textContent.toLowerCase());
+
+      if (hallVal && id !== hallVal)                       show = false;
+      if (capVal  && capacity > capVal)                   show = false;
+      if (facVal  && !facTags.some(f => f.includes(facVal))) show = false;
+      if (statusVal === 'available' && isMaint)            show = false;
+      if (statusVal === 'maintenance' && !isMaint)         show = false;
+      if (statusVal === 'booked') {
+        const hasBooked = row.querySelector('.status-booked, .status-pending, .status-selected');
+        if (!hasBooked) show = false;
+      }
+
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  if (hallFilter)   hallFilter.addEventListener('change', applyFilters);
+  if (capFilter)    capFilter.addEventListener('change', applyFilters);
+  if (facFilter)    facFilter.addEventListener('change', applyFilters);
+  if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+})();
+</script>
 {% endblock %}
