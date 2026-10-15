@@ -1,228 +1,412 @@
-# MCET College ERP – Seminar Hall Booking System
+# 🏛️ MCET Seminar Hall Booking System
 
-**Application Name:** MCET Seminar Hall Booking System  
-**Institution:** Dr. Mahalingam College of Engineering and Technology (MCET), Pollachi, Tamil Nadu  
-**Target Domain:** [https://booking.dexoshpuse.com](https://booking.dexoshpuse.com)  
-**Theme:** Navy Blue (`#123B72`), Royal Blue (`#1D5FA7`), Light Blue (`#EAF3FF`), Clean Modern ERP  
-**Backend:** Python Django (Modular App Architecture)  
-**Frontend:** HTML5, CSS3 Vanilla Design System, Vanilla JavaScript, Lucide-style SVG Icons, Microsoft Outlook-inspired Calendar  
-**Database:** MySQL (Production) / SQLite (Dev fallback)  
-**Authentication:** Microsoft Outlook / Microsoft Entra ID OAuth 2.0 + Local Demo Login Mode  
-**Deployment Platform:** MilesWeb cPanel Python Application / Phusion Passenger (`passenger_wsgi.py`)  
+A College ERP module for **Dr. Mahalingam College of Engineering and Technology (MCET), Pollachi** that lets faculty book seminar halls online, with automatic clash detection and a three-level approval workflow.
+
+🌐 **Live:** https://booking.dexoshpuse.com
+
+| | |
+| :--- | :--- |
+| **Backend** | Python Django (modular apps) |
+| **Frontend** | HTML5, CSS3, Vanilla JS, Outlook-style calendar |
+| **Database** | MySQL (production) / SQLite (development) |
+| **Login** | Microsoft Entra ID (Outlook) OAuth 2.0 + demo login for dev |
+| **Hosting** | MilesWeb cPanel, Python App (Phusion Passenger) |
+| **Theme** | Navy `#123B72` · Royal Blue `#1D5FA7` · Light Blue `#EAF3FF` |
 
 ---
 
-## 1. Project Architecture
+## 📑 Table of Contents
 
-The application is structured into specialized, decoupled Django apps:
+1. [How it works (big picture)](#1-how-it-works-big-picture)
+2. [Project structure](#2-project-structure)
+3. [User roles](#3-user-roles)
+4. [Login flow](#4-login-flow)
+5. [Booking flow and availability engine](#5-booking-flow-and-availability-engine)
+6. [Approval workflow](#6-approval-workflow)
+7. [Database model](#7-database-model)
+8. [Local setup](#8-local-setup)
+9. [Deployment on MilesWeb cPanel](#9-deployment-on-milesweb-cpanel)
+
+---
+
+## 1. How it works (big picture)
+
+```mermaid
+flowchart LR
+    U["👤 User<br/>Faculty / HOD / Principal / Admin"] -->|Microsoft Login| A["🔐 accounts"]
+    A --> D["📊 core<br/>Dashboard"]
+    D --> B["📅 bookings<br/>Availability engine + Calendar"]
+    B --> H["🏫 halls<br/>Hall master"]
+    B --> AP["✅ approvals<br/>HOD → Coordinator → Principal"]
+    AP --> N["🔔 notifications<br/>In-app + Email"]
+    AP --> AU["🧾 audit<br/>Immutable log"]
+    D --> R["📈 reports<br/>Analytics + Excel"]
+    H --> DP["🏢 departments"]
+
+    style U fill:#EAF3FF,stroke:#123B72,color:#123B72
+    style B fill:#1D5FA7,stroke:#123B72,color:#fff
+    style AP fill:#1D5FA7,stroke:#123B72,color:#fff
+```
+
+**In one line:** a user logs in with their college Outlook account, picks a hall and time, the system checks for clashes, and the request travels through HOD, Hall Coordinator and Principal before it is confirmed on the calendar.
+
+---
+
+## 2. Project structure
+
+```mermaid
+flowchart TD
+    ROOT["📁 hall_booking/"] --> CFG["config/<br/>settings, urls, wsgi"]
+    ROOT --> APPS["apps/"]
+    ROOT --> TPL["templates/"]
+    ROOT --> STA["static/<br/>css, js, images"]
+    ROOT --> MED["media/<br/>uploaded documents"]
+    ROOT --> SCR["scripts/<br/>seed_data.py"]
+    ROOT --> FILES["manage.py · passenger_wsgi.py<br/>requirements.txt · .env"]
+
+    APPS --> a1["accounts"]
+    APPS --> a2["departments"]
+    APPS --> a3["halls"]
+    APPS --> a4["bookings"]
+    APPS --> a5["approvals"]
+    APPS --> a6["notifications"]
+    APPS --> a7["reports"]
+    APPS --> a8["audit"]
+    APPS --> a9["core"]
+```
+
+| App | What it does |
+| :--- | :--- |
+| `accounts` | User profiles, Microsoft OAuth, role-based access, demo login |
+| `departments` | Department master data |
+| `halls` | Seminar hall master, capacity, facilities, maintenance |
+| `bookings` | Availability engine, reservations, Outlook-style calendar |
+| `approvals` | Multi-level approval workflow |
+| `notifications` | In-app notifications and email alerts |
+| `reports` | Analytics dashboard and Excel (.xlsx) export |
+| `audit` | Immutable audit trail |
+| `core` | System settings, context processors, dashboard |
+
+<details>
+<summary>📂 Full folder tree</summary>
 
 ```
 hall_booking/
-├── manage.py                     # Django administrative utility
-├── passenger_wsgi.py             # MilesWeb Passenger entry point
-├── requirements.txt              # Production Python package manifest
-├── .env.example                  # Environment configuration template
-├── .env                          # Local environment variables
-│
-├── config/                       # Project configuration
-│   ├── __init__.py               # PyMySQL installation hook
-│   ├── settings.py               # Production & development settings
-│   ├── urls.py                   # Master routing table
-│   └── wsgi.py                   # WSGI application callable
-│
-├── apps/                         # Modular applications
-│   ├── accounts/                 # User profiles, Microsoft OAuth, RBAC, Demo login
-│   ├── departments/              # Department master & affiliations
-│   ├── halls/                    # Seminar Hall master, capacities & facilities
-│   ├── bookings/                 # Smart availability engine, reservations, calendar
-│   ├── approvals/                # Multi-level approval workflow engine
-│   ├── notifications/            # In-app notifications & institutional email alerts
-│   ├── reports/                  # Analytics dashboard & Excel (.xlsx) export
-│   ├── audit/                    # Immutable audit logging
-│   └── core/                     # System configs, global context processors, dashboard
-│
-├── templates/                    # Modular Django templates
-│   ├── base.html                 # Institutional sidebar & topbar layout
-│   ├── authentication/           # Microsoft Outlook login & demo selector
-│   ├── dashboard/                # Live statistics, schedule & hall statuses
-│   ├── bookings/                 # Multi-section booking form, details, edit, queues
-│   ├── calendar/                 # Outlook-style Day/Week/Month/Agenda calendar
-│   ├── halls/                    # Availability matrix, hall master, maintenance
-│   ├── departments/              # Department list & management forms
-│   ├── accounts/                 # User directory, profile & role assignments
-│   ├── reports/                  # Analytics & Excel export interface
-│   ├── notifications/            # Notification center & read status
-│   ├── audit/                    # Immutable audit trail table
-│   └── settings/                 # Administrative booking policy controls
-│
-├── static/
-│   ├── css/                      # Custom institutional design system & calendar CSS
-│   ├── js/                       # Interactivity, smart booking form AJAX, calendar engine
-│   └── images/                   # MCET institutional emblem and logo SVG
-│
-├── media/                        # User-uploaded programme schedules & approval docs
-└── scripts/
-    └── seed_data.py              # Standalone data seeding runner
+├── manage.py
+├── passenger_wsgi.py          # MilesWeb Passenger entry point
+├── requirements.txt
+├── .env.example
+├── config/                    # settings, urls, wsgi
+├── apps/
+│   ├── accounts/  departments/  halls/  bookings/
+│   ├── approvals/ notifications/ reports/ audit/ core/
+├── templates/                 # base, authentication, dashboard, bookings,
+│                              # calendar, halls, departments, accounts,
+│                              # reports, notifications, audit, settings
+├── static/                    # css, js, images
+├── media/                     # uploaded schedules & approval docs
+└── scripts/seed_data.py
 ```
+</details>
 
 ---
 
-## 2. User Roles & Permission Matrix
+## 3. User roles
 
-The system enforces strict role-based authorization at the view and service layer:
+```mermaid
+flowchart TB
+    ADMIN["🛡️ Administrator<br/>Full control, can expedite any step"]
+    PRINCIPAL["🎓 Principal<br/>Final sanction"]
+    COORD["🏫 Hall Coordinator<br/>Reviews facilities, manages halls"]
+    HOD["👨‍🏫 HOD<br/>Approves own department"]
+    FAC["🧑‍💼 Faculty / Staff<br/>Creates and submits bookings"]
+    STU["🎒 Student<br/>View availability only"]
 
-| Role | Hall Availability | Create Bookings | HOD Approval | Coordinator Review | Principal Approval | Hall Master | Audit Logs & Settings |
+    ADMIN --> PRINCIPAL --> COORD --> HOD --> FAC --> STU
+
+    style ADMIN fill:#123B72,color:#fff
+    style PRINCIPAL fill:#1D5FA7,color:#fff
+    style COORD fill:#1D5FA7,color:#fff
+    style HOD fill:#EAF3FF,stroke:#1D5FA7,color:#123B72
+    style FAC fill:#EAF3FF,stroke:#1D5FA7,color:#123B72
+    style STU fill:#fff,stroke:#1D5FA7,color:#123B72
+```
+
+### Permission matrix
+
+| Role | View availability | Create bookings | HOD approval | Coordinator review | Principal approval | Hall master | Audit logs and settings |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Student** | Yes (View) | No | No | No | No | No | No |
-| **Faculty / Staff** | Yes | Yes (Draft/Submit) | No | No | No | No | No |
-| **HOD** | Yes | Yes | **Yes (Own Dept)** | No | No | No | No |
-| **Hall Coordinator**| Yes | Yes | No | **Yes (All Halls)** | No | **Yes (Full)** | No |
-| **Principal** | Yes | Yes | No | No | **Yes (Final Sanction)** | View | View |
-| **Administrator** | Yes | Yes | Expedite | Expedite | Expedite | **Yes** | **Yes (Full)** |
+| **Student** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Faculty / Staff** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **HOD** | ✅ | ✅ | ✅ own dept | ❌ | ❌ | ❌ | ❌ |
+| **Hall Coordinator** | ✅ | ✅ | ❌ | ✅ all halls | ❌ | ✅ full | ❌ |
+| **Principal** | ✅ | ✅ | ❌ | ❌ | ✅ final | 👁️ view | 👁️ view |
+| **Administrator** | ✅ | ✅ | ⚡ expedite | ⚡ expedite | ⚡ expedite | ✅ | ✅ full |
 
 ---
 
-## 3. Microsoft Outlook & Demo Authentication
+## 4. Login flow
 
-### Microsoft Entra ID OAuth 2.0 Setup
-1. Register an application in the [Microsoft Entra Admin Center](https://entra.microsoft.com/).
-2. Add a Web platform with the Redirect URI:  
-   `https://booking.dexoshpuse.com/auth/microsoft/callback/`
-3. Generate a Client Secret and copy the Application (Client) ID and Directory (Tenant) ID.
-4. Set the following in your `.env` file:
-   ```ini
-   MICROSOFT_CLIENT_ID=your-client-id
-   MICROSOFT_CLIENT_SECRET=your-client-secret
-   MICROSOFT_TENANT_ID=your-tenant-id-or-common
-   MICROSOFT_REDIRECT_URI=https://booking.dexoshpuse.com/auth/microsoft/callback/
-   ALLOWED_EMAIL_DOMAINS=mcet.in,drmcet.ac.in
-   ```
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as Django App
+    participant MS as Microsoft Entra ID
 
-### Local Demo Login Mode (Development Only)
-When `ENABLE_DEMO_LOGIN=True` in `.env`, the login page renders a quick one-click role selector with realistic pre-seeded accounts:
-- **System Administrator:** `admin@mcet.in` (password: `mcet@admin2026`)
-- **Principal:** `principal@mcet.in` (password: `mcet@principal2026`)
-- **Seminar Hall Coordinator:** `coordinator@mcet.in` (password: `mcet@coord2026`)
-- **HOD (Information Technology):** `hod.it@mcet.in` (password: `mcet@hod2026`)
-- **Faculty Coordinator:** `faculty.it@mcet.in` (password: `mcet@faculty2026`)
-- **Student Representative:** `727624P80@mcet.in` (password: `mcet@student2026`)
+    User->>App: Open booking.dexoshpuse.com
+    App->>User: Show login page
+    User->>App: Click "Sign in with Microsoft"
+    App->>MS: Redirect to Microsoft login
+    MS->>User: Ask for college credentials
+    User->>MS: Enter mcet.in / drmcet.ac.in account
+    MS->>App: Callback with auth code (/auth/microsoft/callback/)
+    App->>MS: Exchange code for token
+    MS-->>App: User profile (email, name)
+    App->>App: Check email domain is allowed
+    App->>App: Create or update user + assign role
+    App->>User: Redirect to Dashboard
+```
 
-*Note: For production on MilesWeb, set `ENABLE_DEMO_LOGIN=False`.*
+> 🧪 **Demo mode:** when `ENABLE_DEMO_LOGIN=True` (development only), the login page shows one-click role accounts. **Always set it to `False` in production.**
 
 ---
 
-## 4. Smart Availability Validation Engine
+## 5. Booking flow and availability engine
 
-Before any booking request can be saved or confirmed, the engine enforces:
-1. **Date Validation:** Booking dates in the past are strictly rejected.
-2. **Chronological Time Ordering:** `start_time` must be earlier than `end_time`.
-3. **Capacity Constraints:** Participant count cannot exceed the hall's maximum capacity.
-4. **Maintenance Checks:** Halls currently under maintenance or with scheduled downtime are blocked.
-5. **Conflict Detection:** Strict overlap checking (`start_time < existing.end_time AND end_time > existing.start_time`).
-6. **Smart Suggestions:**
-   - In case of a conflict, the system displays the conflicting event details.
-   - It automatically lists **alternative available halls** with sufficient capacity.
-   - It suggests **open available time slots** on the same day for that hall.
-7. **Concurrency Protection:** Database transactions use `transaction.atomic()` and `select_for_update()` to prevent race conditions during simultaneous booking attempts.
+Every booking request goes through these checks **before** it is saved.
 
----
+```mermaid
+flowchart TD
+    START(["📝 User fills booking form"]) --> C1{"Date in the past?"}
+    C1 -- Yes --> X1["❌ Reject: past date"]
+    C1 -- No --> C2{"Start time before end time?"}
+    C2 -- No --> X2["❌ Reject: invalid time order"]
+    C2 -- Yes --> C3{"Participants within hall capacity?"}
+    C3 -- No --> X3["❌ Reject: over capacity"]
+    C3 -- Yes --> C4{"Hall under maintenance?"}
+    C4 -- Yes --> X4["❌ Reject: hall unavailable"]
+    C4 -- No --> C5{"Time overlaps another booking?"}
+    C5 -- Yes --> SUG["⚠️ Show conflicting event<br/>+ alternative halls<br/>+ free time slots"]
+    C5 -- No --> LOCK["🔒 Save inside transaction.atomic<br/>with select_for_update"]
+    LOCK --> OK(["✅ Request created → goes to approval"])
 
-## 5. Multi-Level Approval Workflow
+    style OK fill:#1D5FA7,color:#fff
+    style SUG fill:#EAF3FF,stroke:#1D5FA7,color:#123B72
+```
+
+**Clash rule:**
 
 ```
-Faculty / Staff Submits Request
-             │
-             ▼
-[Availability Engine Check]
-             │
-             ▼
-    HOD Verification
-(Department Head reviews & verifies academic schedule)
-             │
-             ▼
-Seminar Hall Coordinator Approval
-(Checks facilities, AV technician allocation, hall maintenance)
-             │
-             ▼
-Principal / Authorized Approval
-(Final institutional sanction)
-             │
-             ▼
-Booking Confirmed & Locked
-(Calendar updated, email alerts dispatched to faculty & department)
+new.start_time < existing.end_time  AND  new.end_time > existing.start_time
 ```
-- Rejections require a mandatory documented reason recorded in the immutable audit trail.
-- Changes can be requested via "Request Modification", returning the request to draft state.
+
+**Concurrency protection:** two people booking the same slot at the same moment cannot both succeed, because the database row is locked during the save (`select_for_update()`).
 
 ---
 
-## 6. Local Quick-Start Guide
+## 6. Approval workflow
 
-### Step 1: Install Dependencies
+### Step by step
+
+```mermaid
+flowchart TD
+    F["🧑‍💼 Faculty submits request"] --> E{"Availability engine<br/>passes?"}
+    E -- No --> F
+    E -- Yes --> H["👨‍🏫 HOD verification<br/>Academic schedule check"]
+    H --> CO["🏫 Hall Coordinator approval<br/>Facilities, AV technician, maintenance"]
+    CO --> P["🎓 Principal approval<br/>Final sanction"]
+    P --> OK["✅ Booking confirmed and locked<br/>Calendar updated · Emails sent"]
+
+    H -. Reject + reason .-> REJ["❌ Rejected"]
+    CO -. Reject + reason .-> REJ
+    P -. Reject + reason .-> REJ
+    H -. Request modification .-> F
+    CO -. Request modification .-> F
+    P -. Request modification .-> F
+
+    style OK fill:#1D5FA7,color:#fff
+    style REJ fill:#fff,stroke:#c0392b,color:#c0392b
+```
+
+### Booking status lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Submitted: Faculty submits
+    Submitted --> HODReview: Availability check passed
+    HODReview --> CoordinatorReview: HOD verifies
+    CoordinatorReview --> PrincipalReview: Coordinator approves
+    PrincipalReview --> Confirmed: Principal sanctions
+    HODReview --> Draft: Modification requested
+    CoordinatorReview --> Draft: Modification requested
+    PrincipalReview --> Draft: Modification requested
+    HODReview --> Rejected: Reason required
+    CoordinatorReview --> Rejected: Reason required
+    PrincipalReview --> Rejected: Reason required
+    Confirmed --> [*]
+    Rejected --> [*]
+```
+
+**Rules**
+- A rejection **must** include a written reason, which is stored in the immutable audit trail.
+- "Request Modification" sends the booking back to **Draft** so the faculty can edit and resubmit.
+- Administrators can expedite any step.
+
+### Who gets notified
+
+```mermaid
+sequenceDiagram
+    actor Faculty
+    participant HOD
+    participant Coord as Hall Coordinator
+    participant Principal
+    participant Sys as System (Notifications + Audit)
+
+    Faculty->>Sys: Submit booking
+    Sys->>HOD: 🔔 Pending verification
+    HOD->>Sys: Verify
+    Sys->>Coord: 🔔 Pending review
+    Coord->>Sys: Approve
+    Sys->>Principal: 🔔 Pending final approval
+    Principal->>Sys: Sanction
+    Sys->>Faculty: 📧 Booking confirmed
+    Sys->>HOD: 📧 Department copy
+    Note over Sys: Every action is written to the audit log
+```
+
+---
+
+## 7. Database model
+
+```mermaid
+erDiagram
+    DEPARTMENT ||--o{ USER : "has"
+    DEPARTMENT ||--o{ BOOKING : "organises"
+    USER ||--o{ BOOKING : "creates"
+    HALL ||--o{ BOOKING : "is reserved in"
+    HALL ||--o{ MAINTENANCE : "has downtime"
+    BOOKING ||--o{ APPROVAL : "goes through"
+    USER ||--o{ APPROVAL : "acts on"
+    USER ||--o{ NOTIFICATION : "receives"
+    BOOKING ||--o{ AUDIT_LOG : "recorded in"
+
+    USER {
+        int id
+        string email
+        string role
+    }
+    DEPARTMENT {
+        int id
+        string name
+    }
+    HALL {
+        int id
+        string name
+        int capacity
+        string facilities
+    }
+    BOOKING {
+        int id
+        date event_date
+        time start_time
+        time end_time
+        int participants
+        string status
+    }
+    APPROVAL {
+        int id
+        string level
+        string decision
+        string reason
+    }
+    MAINTENANCE {
+        int id
+        datetime from_time
+        datetime to_time
+    }
+    NOTIFICATION {
+        int id
+        string message
+        bool is_read
+    }
+    AUDIT_LOG {
+        int id
+        string action
+        datetime timestamp
+    }
+```
+
+> ℹ️ Simplified view. Field names are illustrative; see each app's `models.py` for the exact schema.
+
+---
+
+## 8. Local setup
+
+```mermaid
+flowchart LR
+    A["1️⃣ pip install -r requirements.txt"] --> B["2️⃣ python manage.py migrate"]
+    B --> C["3️⃣ python manage.py seed_data"]
+    C --> D["4️⃣ python manage.py runserver"]
+    D --> E["🌐 http://127.0.0.1:8000"]
+```
+
 ```powershell
 pip install -r requirements.txt
-```
-
-### Step 2: Run Database Migrations
-```powershell
 python manage.py migrate
-```
-
-### Step 3: Seed Realistic Institutional Data
-```powershell
-python manage.py seed_data
-```
-*This populates 10 departments, 5 seminar halls with equipment, 7 sample user roles, and 20 realistic bookings across all workflow stages.*
-
-### Step 4: Run the Development Server
-```powershell
+python manage.py seed_data      # 10 departments, 5 halls, 7 sample users, 20 bookings
 python manage.py runserver 127.0.0.1:8000
 ```
-Visit [http://127.0.0.1:8000](http://127.0.0.1:8000) and select any demo account to test.
+
+Open http://127.0.0.1:8000 and pick a demo account.
+
+### Demo accounts (development only)
+
+Set `ENABLE_DEMO_LOGIN=True` in `.env`. Passwords are defined in the seed data, not in this README.
+
+| Role | Email |
+| :--- | :--- |
+| System Administrator | `admin@mcet.in` |
+| Principal | `principal@mcet.in` |
+| Hall Coordinator | `coordinator@mcet.in` |
+| HOD (IT) | `hod.it@mcet.in` |
+| Faculty Coordinator | `faculty.it@mcet.in` |
+| Student Representative | `727624P80@mcet.in` |
 
 ---
 
-## 7. MilesWeb cPanel Deployment Guide
+## 9. Deployment on MilesWeb cPanel
 
-### Target Domain: `https://booking.dexoshpuse.com`
+```mermaid
+flowchart TD
+    S1["1. Create subdomain<br/>booking.dexoshpuse.com"] --> S2["2. Create MySQL DB + user<br/>MySQL Database Wizard"]
+    S2 --> S3["3. Setup Python App<br/>startup file: passenger_wsgi.py<br/>entry point: application"]
+    S3 --> S4["4. Upload project files<br/>keep cPanel virtualenv"]
+    S4 --> S5["5. Create .env<br/>production values"]
+    S5 --> S6["6. Activate virtualenv<br/>pip install -r requirements.txt"]
+    S6 --> S7["7. migrate + collectstatic<br/>(optional seed_data)"]
+    S7 --> S8["8. createsuperuser"]
+    S8 --> S9["9. Restart app in cPanel"]
+    S9 --> LIVE(["🚀 Live"])
 
-### Step 1: Create the Subdomain / Domain in cPanel
-1. Log in to your MilesWeb cPanel.
-2. Go to **Domains** or **Subdomains**.
-3. Create the subdomain `booking.dexoshpuse.com`.
-4. Note the Document Root (e.g. `/home/username/booking.dexoshpuse.com` or `/home/username/public_html/booking`).
+    style LIVE fill:#1D5FA7,color:#fff
+```
 
-### Step 2: Create MySQL Database & User
-1. In cPanel, open **MySQL Database Wizard**.
-2. Create database: `username_mcethall`.
-3. Create database user: `username_mcetusr` with a strong password.
-4. Grant **ALL PRIVILEGES** to the user for this database.
+### Microsoft Entra ID setup
 
-### Step 3: Set up Python Application in cPanel
-1. In cPanel, navigate to **Software** &rarr; **Setup Python App**.
-2. Click **Create Application**.
-3. Configure the following:
-   - **Python version:** Select `3.10`, `3.11`, or `3.12`.
-   - **Application root:** `booking.dexoshpuse.com` (relative to your cPanel home directory).
-   - **Application URL:** `booking.dexoshpuse.com`.
-   - **Application startup file:** `passenger_wsgi.py`.
-   - **Application Entry point:** `application`.
-4. Click **Create**.
+1. Open the [Microsoft Entra Admin Center](https://entra.microsoft.com/) and register an application.
+2. Add a **Web** platform with redirect URI `https://booking.dexoshpuse.com/auth/microsoft/callback/`.
+3. Create a client secret, then copy the Client ID and Tenant ID.
 
-### Step 4: Upload Project Files
-Upload the project files to the application root folder (e.g. via cPanel File Manager, Git, or SFTP):
-- Do **not** overwrite the virtual environment created by cPanel.
-- Ensure `manage.py`, `passenger_wsgi.py`, `requirements.txt`, `config/`, `apps/`, `templates/`, and `static/` are uploaded.
+### Production `.env`
 
-### Step 5: Configure Production Environment Variables (`.env`)
-Create or edit `.env` in the project root:
 ```ini
-SECRET_KEY=generate-a-strong-random-50-character-secret-key!
+SECRET_KEY=generate-a-strong-random-50-character-secret-key
 DEBUG=False
 ALLOWED_HOSTS=booking.dexoshpuse.com,localhost,127.0.0.1
 CSRF_TRUSTED_ORIGINS=https://booking.dexoshpuse.com
 
-# MySQL Database Configuration
+# Database
 DB_ENGINE=mysql
 DB_NAME=username_mcethall
 DB_USER=username_mcetusr
@@ -230,17 +414,17 @@ DB_PASSWORD=your_secure_mysql_password
 DB_HOST=localhost
 DB_PORT=3306
 
-# Microsoft Entra ID Authentication
+# Microsoft Entra ID
 MICROSOFT_CLIENT_ID=your-microsoft-client-id
 MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
 MICROSOFT_TENANT_ID=common
 MICROSOFT_REDIRECT_URI=https://booking.dexoshpuse.com/auth/microsoft/callback/
 ALLOWED_EMAIL_DOMAINS=mcet.in,drmcet.ac.in
 
-# Production Security Mode
+# Security
 ENABLE_DEMO_LOGIN=False
 
-# SMTP Email Configuration
+# Email (SMTP)
 EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
 EMAIL_HOST=mail.booking.dexoshpuse.com
 EMAIL_PORT=587
@@ -250,32 +434,20 @@ EMAIL_HOST_PASSWORD=your-email-account-password
 DEFAULT_FROM_EMAIL=MCET College ERP <notifications@booking.dexoshpuse.com>
 ```
 
-### Step 6: Install Requirements inside cPanel Python App
-1. In cPanel **Setup Python App**, copy the virtualenv activation command shown at the top of the page (e.g. `source /home/username/virtualenv/booking.dexoshpuse.com/3.11/bin/activate`).
-2. Open cPanel **Terminal** or SSH, paste the activation command, and run:
-   ```bash
-   cd /home/username/booking.dexoshpuse.com
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
+### Commands (virtualenv active)
 
-### Step 7: Run Migrations and Collect Static Files
-In the terminal with virtualenv active:
 ```bash
+cd /home/username/booking.dexoshpuse.com
+pip install --upgrade pip
+pip install -r requirements.txt
 python manage.py migrate
 python manage.py collectstatic --noinput
-python manage.py seed_data # (Optional: seeds initial departments and halls)
+python manage.py seed_data          # optional
+python manage.py createsuperuser    # if not seeded
 ```
 
-### Step 8: Create Admin Superuser (if not seeded)
-```bash
-python manage.py createsuperuser
-```
+Then click **Restart** in cPanel → **Setup Python App**.
 
-### Step 9: Restart the Application
-In cPanel **Setup Python App**, click **Restart** on your application.
+---
 
-Your MCET Seminar Hall Booking System is now live at:  
-👉 **https://booking.dexoshpuse.com**
-#   H a l l _ B o o k i n g _ p o r t a l  
- 
+<p align="center">Built for Dr. Mahalingam College of Engineering and Technology, Pollachi</p>
